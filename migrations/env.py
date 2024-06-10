@@ -27,7 +27,7 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 from models.base import Base
-from models import user, client, event, contract
+from models.models import User, Client, Contract, Event
 
 
 config.set_main_option('sqlalchemy.url', DATABASE_URL)

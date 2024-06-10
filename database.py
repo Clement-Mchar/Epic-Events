@@ -1,17 +1,19 @@
 from sqlalchemy import create_engine
 import os
 from dotenv import load_dotenv
-from models.user import User
-from models.client import Client
-from models.contract import Contract
-from models.event import Event
+from models.models import User, Client, Contract, Event
+from sqlalchemy.orm import sessionmaker
 
 load_dotenv()
 
-def initialize_database():
-    database_url = os.environ.get('DATABASE_URL')
+database_url = os.environ.get('DATABASE_URL')
 
-    engine = create_engine(database_url)
+engine = create_engine(database_url)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def initialize_database():
+
     User.metadata.create_all(engine)
     Client.metadata.create_all(engine)
     Contract.metadata.create_all(engine)
