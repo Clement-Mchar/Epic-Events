@@ -2,12 +2,13 @@ from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy_utils.types.choice import ChoiceType
 from models.base import Base
-from sqlalchemy_utils import PasswordType
-from typing import List
+from sqlalchemy_utils import PasswordType, force_auto_coercion, EmailType
+from typing import List, Set
 from sqlalchemy.sql import func
 import datetime
 import re
 
+force_auto_coercion()
 class User(Base):
     """Sets the model for the user object's creation"""
 
@@ -15,71 +16,52 @@ class User(Base):
 
     ROLE = [("Manager", "man"), ("Commercial", "com"), ("Support", "sup")]
 
-    _id: Mapped[int] = mapped_column(
-        "_id", primary_key=True, unique=True, autoincrement=True
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True
     )
-    _password: Mapped[str] = mapped_column(
-        "_password",
-        PasswordType(
+    password: Mapped[str] = mapped_column(
+        "password", PasswordType(
             schemes=["pbkdf2_sha512", "md5_crypt"], deprecated=["md5_crypt"]
-        ),
+        )
     )
-    _full_name: Mapped[str] = mapped_column("_full_name", String(30))
-    _email: Mapped[str] = mapped_column("_email", String(50), unique=True)
-    _department: Mapped[str] = mapped_column(
-        "_department", String(3), ChoiceType(ROLE)
-    )
-
-    clients: Mapped[List["Client"]] = relationship(
-        back_populates="commercial_contact"
+    full_name: Mapped[str] = mapped_column("full_name", String(30))
+    email: Mapped[str] = mapped_column("email", EmailType, unique=True)
+    department: Mapped[str] = mapped_column(
+        "department", String(3), ChoiceType(ROLE)
     )
 
-    def __init__(self, id, full_name, email, department):
-        self._id = id
-        self._full_name = full_name
-        self._email = email
-        self._department = department
+    clients: Mapped[Set["Client"]] = relationship(
+        back_populates="commercial"
+    )
 
-    @property
-    def id(self):
-        return self._id
+    def __init__(self, full_name, email, department, **kwargs):
+        self.set_full_name(full_name)
+        self.set_email(email)
+        self.set_department(department)
+        super().__init__(**kwargs)
 
-    @id.setter
-    def id(self, id):
-        self._id = id
+    def validate_full_name(self, value):
+        if not value:
+            raise ValueError("Name field can't be empty.")
+    
+    def validate_email(self, value):
+        if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
+            raise ValueError("Email is not valid.")
+    
+    def validate_department(self, value):
+        if value not in [role[1] for role in User.ROLE]:
+            raise ValueError("This department doesn't exist.")
 
-    @property
-    def full_name(self):
-        return self._full_name
+    def set_full_name(self, value):
+        self.validate_full_name(value)
+        self.full_name = value
 
-    @full_name.setter
-    def full_name(self, full_name):
-        self._full_name = full_name
-
-    @property
-    def email(self):
-        return self._email
-
-    @email.setter
-    def email(self, email):
-        self._email = email
-
-    @property
-    def department(self):
-        return self._department
-
-    @department.setter
-    def department(self, department):
-        self._validate_role(department)
-        self._department = department
-
-    def _validate_role(self, department):
-        valid_roles = [role[1] for role in self.ROLE]
-        if department not in valid_roles:
-            raise ValueError(
-                f"Invalid department: {department}. Must be one of"
-                f" {valid_roles}"
-            )
+    def set_email(self, value):
+        self.validate_email(value)
+        self.email = value
+    
+    def set_department(self, value):
+        self.validate_department(value)
+        self.department = value 
 
     def __repr__(self):
         return (
@@ -93,80 +75,27 @@ class Client(Base):
 
     __tablename__ = "client"
 
-    _id: Mapped[int] = mapped_column(
-        "_id", primary_key=True, unique=True, autoincrement=True
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True
     )
-    _full_name: Mapped[str] = mapped_column("_full_name", String(30))
-    _email: Mapped[str] = mapped_column("_email", String(50), unique=True)
-    _telephone: Mapped[int] = mapped_column("_telephone", Integer, unique=True)
-    _business_name: Mapped[str] = mapped_column("_business_name", String)
-    _creation_date: Mapped[datetime.datetime] = mapped_column(
-        "_creation_date", DateTime(timezone=True), server_default=func.now()
+    full_name: Mapped[str] = mapped_column("full_name", String(30))
+    email: Mapped[str] = mapped_column("email", String(50), unique=True)
+    telephone: Mapped[int] = mapped_column("telephone", Integer, unique=True)
+    business_name: Mapped[str] = mapped_column("business_name", String)
+    creation_date: Mapped[datetime.datetime] = mapped_column(
+        "creation_date", DateTime(timezone=True), server_default=func.now()
     )
-    _last_update: Mapped[datetime.datetime] = mapped_column(
-        "_last_update",
+    last_update: Mapped[datetime.datetime] = mapped_column(
+        "last_update",
         DateTime(timezone=True),
         server_default=func.now(),
         onupdate=func.now(),
     )
-    _commercial_contact: Mapped[int] = mapped_column(
-        "_commercial_contact", ForeignKey("user._id")
+    commercial_contact: Mapped[int] = mapped_column(
+        "commercial_contact", ForeignKey("user.id")
     )
 
     commercial: Mapped["User"] = relationship(back_populates="clients")
     contracts: Mapped[List["Contract"]] = relationship(back_populates="client")
-
-    def __init__(self, id, full_name, email, telephone, business_name):
-        self._id = id
-        self._full_name = full_name
-        self._email = email
-        self._telephone = telephone
-        self._business_name = business_name
-
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self, id):
-        self._id = id
-
-    @property
-    def full_name(self):
-        return self._full_name
-
-    @full_name.setter
-    def full_name(self, full_name):
-        self._full_name = full_name
-
-    @property
-    def email(self):
-        return self._email
-
-    @email.setter
-    def email(self, email):
-        self._validate_email(email)
-        self._email = email
-
-    def _validate_email(email):
-        if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-            raise ValueError("Invalid email address")
-        return email
-    @property
-    def telephone(self):
-        return self._telephone
-
-    @telephone.setter
-    def telephone(self, telephone):
-        self._telephone = telephone
-
-    @property
-    def business_name(self):
-        return self._business_name
-
-    @business_name.setter
-    def business_name(self, business_name):
-        self._business_name = business_name
 
     def __repr__(self):
         return (
@@ -181,82 +110,23 @@ class Contract(Base):
 
     __tablename__ = "contract"
 
-    _id: Mapped[int] = mapped_column(
-        "_id", primary_key=True, unique=True, autoincrement=True
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True
     )
-    _client_infos: Mapped[int] = mapped_column(
-        "_client_infos", ForeignKey("client._id")
+    client_infos: Mapped[int] = mapped_column(
+        "client_infos", ForeignKey("client.id")
     )
-    _commercial: Mapped[int] = mapped_column(
-        "_commercial", ForeignKey("user._id")
+    commercial: Mapped[int] = mapped_column(
+        "commercial", ForeignKey("user.id")
     )
-    _total_amount: Mapped[int] = mapped_column("_total_amount", Integer)
-    _left_amount: Mapped[int] = mapped_column("_left_amount", Integer)
-    _creation_date: Mapped[datetime.datetime] = mapped_column(
-        "_creation_date", DateTime(timezone=True), server_default=func.now()
+    total_amount: Mapped[int] = mapped_column("total_amount", Integer)
+    left_amount: Mapped[int] = mapped_column("left_amount", Integer)
+    creation_date: Mapped[datetime.datetime] = mapped_column(
+        "creation_date", DateTime(timezone=True), server_default=func.now()
     )
-    _status: Mapped[bool] = mapped_column("_status", Boolean, default=False)
+    status: Mapped[bool] = mapped_column("status", Boolean, default=False)
 
     client: Mapped["Client"] = relationship(back_populates="contracts")
     event: Mapped["Event"] = relationship(back_populates="contract")
-
-    def __init__(
-        self, id, client_infos, commercial, total_amount, left_amount, status
-    ):
-        self._id = id
-        self._client_infos = client_infos
-        self._commercial = commercial
-        self._total_amount = total_amount
-        self._left_amount = left_amount
-        self._status = status
-
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self, id):
-        self._id = id
-
-    @property
-    def client_infos(self):
-        return self._client_infos
-
-    @client_infos.setter
-    def client_infos(self, client_infos):
-        self._client_infos = client_infos
-
-    @property
-    def commercial(self):
-        return self._commercial
-
-    @commercial.setter
-    def commercial(self, commercial):
-        self._commercial = commercial
-
-    @property
-    def total_amount(self):
-        return self._total_amount
-
-    @total_amount.setter
-    def total_amount(self, total_amount):
-        self._total_amount = total_amount
-
-    @property
-    def left_amount(self):
-        return self._left_amount
-
-    @left_amount.setter
-    def left_amount(self, left_amount):
-        self._left_amount = left_amount
-
-    @property
-    def status(self):
-        return self._status
-
-    @status.setter
-    def status(self, status):
-        self._status = status
 
     def __repr__(self):
         return (
@@ -271,117 +141,22 @@ class Event(Base):
 
     __tablename__ = "event"
 
-    _id: Mapped[int] = mapped_column(
-        "_id", primary_key=True, unique=True, autoincrement=True
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True
     )
-    _contract_id: Mapped[int] = mapped_column(
-        "_contract_id", ForeignKey("contract._id")
+    contract_id: Mapped[int] = mapped_column(
+        "contract_id", ForeignKey("contract.id")
     )
-    _client: Mapped[int] = mapped_column("_client", ForeignKey("client._id"))
-    _event_start: Mapped[str] = mapped_column("_event_start", String)
-    _event_end: Mapped[str] = mapped_column("_event_end", String)
-    _support_contact: Mapped[int] = mapped_column(
-        "_support_contact", ForeignKey("user._id")
+    client: Mapped[int] = mapped_column("client", ForeignKey("client.id"))
+    event_start: Mapped[str] = mapped_column("event_start", String)
+    event_end: Mapped[str] = mapped_column("event_end", String)
+    support_contact: Mapped[int] = mapped_column(
+        "support_contact", ForeignKey("user.id")
     )
-    _location: Mapped[str] = mapped_column("_location", String)
-    _attendees: Mapped[int] = mapped_column("_attendees", Integer)
-    _notes: Mapped[str] = mapped_column("_notes", String)
+    location: Mapped[str] = mapped_column("location", String)
+    attendees: Mapped[int] = mapped_column("attendees", Integer)
+    notes: Mapped[str] = mapped_column("notes", String)
 
     contract: Mapped["Contract"] = relationship(back_populates="event")
-
-    def __init__(
-        self,
-        id,
-        contract_id,
-        client,
-        event_start,
-        event_end,
-        support_contact,
-        location,
-        attendees,
-        notes,
-    ):
-        self._id = id
-        self._contract_id = contract_id
-        self._client = client
-        self._event_start = event_start
-        self._event_end = event_end
-        self._support_contact = support_contact
-        self._location = location
-        self._attendees = attendees
-        self._notes = notes
-
-    @property
-    def id(self):
-        return self._id
-
-    @id.setter
-    def id(self, id):
-        self._id = id
-
-    @property
-    def contract_id(self):
-        return self._contract_id
-
-    @contract_id.setter
-    def contract_id(self, contract_id):
-        self._contract_id = contract_id
-
-    @property
-    def client(self):
-        return self._client
-
-    @client.setter
-    def client(self, client):
-        self._client = client
-
-    @property
-    def event_start(self):
-        return self._event_start
-
-    @event_start.setter
-    def event_start(self, event_start):
-        self._event_start = event_start
-
-    @property
-    def event_end(self):
-        return self._event_end
-
-    @event_end.setter
-    def event_end(self, event_end):
-        self._event_end = event_end
-
-    @property
-    def support_contact(self):
-        return self._support_contact
-
-    @support_contact.setter
-    def support_contact(self, support_contact):
-        self._support_contact = support_contact
-
-    @property
-    def location(self):
-        return self._location
-
-    @location.setter
-    def location(self, location):
-        self._location = location
-
-    @property
-    def attendees(self):
-        return self._attendees
-
-    @attendees.setter
-    def attendees(self, attendees):
-        self._attendees = attendees
-
-    @property
-    def notes(self):
-        return self._notes
-
-    @notes.setter
-    def notes(self, notes):
-        self._notes = notes
 
     def __repr__(self):
         return (
