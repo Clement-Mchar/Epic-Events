@@ -2,6 +2,7 @@ from sqlalchemy import String, Integer, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship, Mapped, mapped_column
 from sqlalchemy_utils.types.choice import ChoiceType
 from models.base import Base
+
 from sqlalchemy_utils import PasswordType, force_auto_coercion, EmailType
 from typing import List, Set
 from sqlalchemy.sql import func
@@ -9,12 +10,22 @@ import datetime
 import re
 
 force_auto_coercion()
+
+class Role(Base):
+    """Sets the model for the role object's creation"""
+
+    __tablename__ = "role"
+
+    id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True)
+    name: Mapped[str] = mapped_column("name", String(30), unique=True)
+    code: Mapped[str] = mapped_column("code", String(3), unique=True)
+
+    users: Mapped[List["User"]] = relationship("User", back_populates="role")
+
 class User(Base):
     """Sets the model for the user object's creation"""
 
     __tablename__ = "user"
-
-    ROLE = [("Manager", "man"), ("Commercial", "com"), ("Support", "sup")]
 
     id: Mapped[int] = mapped_column(primary_key=True, unique=True, autoincrement=True
     )
@@ -25,18 +36,18 @@ class User(Base):
     )
     full_name: Mapped[str] = mapped_column("full_name", String(30))
     email: Mapped[str] = mapped_column("email", EmailType, unique=True)
-    department: Mapped[str] = mapped_column(
-        "department", String(3), ChoiceType(ROLE)
-    )
+    role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
+    role: Mapped["Role"] = relationship("Role", back_populates="users")
 
-    clients: Mapped[Set["Client"]] = relationship(
+    clients: Mapped[Set["Client"]] = relationship(back_populates="commercial")
+    clients: Mapped[List["Client"]] = relationship(
         back_populates="commercial"
     )
 
-    def __init__(self, full_name, email, department, **kwargs):
+    def __init__(self, full_name, email, role_id, **kwargs):
         self.set_full_name(full_name)
         self.set_email(email)
-        self.set_department(department)
+        self.role_id = role_id
         super().__init__(**kwargs)
 
     def validate_full_name(self, value):
@@ -47,9 +58,19 @@ class User(Base):
         if not re.match(r"[^@]+@[^@]+\.[^@]+", value):
             raise ValueError("Email is not valid.")
     
-    def validate_department(self, value):
-        if value not in [role[1] for role in User.ROLE]:
-            raise ValueError("This department doesn't exist.")
+    def validate_role_id(self, value):
+        from database import SessionLocal
+        session = SessionLocal()
+        role = session.query(Role).filter_by(id=value).first()
+        session.close()
+        if role is None:
+            raise ValueError("Invalid role ID.")
+
+    def __repr__(self):
+        return (
+            f"User(id={self.id}, full_name='{self.full_name}',"
+            f" email='{self.email}', role='{self.role}')"
+        )
 
     def set_full_name(self, value):
         self.validate_full_name(value)
@@ -59,14 +80,14 @@ class User(Base):
         self.validate_email(value)
         self.email = value
     
-    def set_department(self, value):
-        self.validate_department(value)
-        self.department = value 
+    def set_role(self, value):
+        self.validate_role_id(value)
+        self.role = value 
 
     def __repr__(self):
         return (
             f"User(id={self.id}, full_name='{self.full_name}',"
-            f" email='{self.email}', department='{self.department}')"
+            f" email='{self.email}', role='{self.role}')"
         )
 
 

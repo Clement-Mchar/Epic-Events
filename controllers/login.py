@@ -13,6 +13,6 @@ class LoginController:
         password = login_infos[1]
         user = session.query(User).filter(User.email == email).one()
         if user and user.password == password:
-            if user.department == "man":
+            if user.role_id == 1 :
                 MenusController.manager_menu(user)
     

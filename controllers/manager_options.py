@@ -1,5 +1,5 @@
 from database import SessionLocal
-from models.models import User
+from models.models import User, Role
 from views.manager_view import ManagerView
 from views.login_view import LoginView
 
@@ -9,14 +9,15 @@ class ManagerOptions:
     def create_user(cls, user):
         session = SessionLocal()
         user_infos = ManagerView.create_user_view(user)
-        full_name, email, password, department = user_infos
-        if user.department == "man":
+        full_name, email, password, role_name = user_infos
+        role = session.query(Role).filter(Role.code == role_name).one()
+        if user.role.code == "man":
             try:
                 new_user = User(
                     full_name=full_name,
                     email=email,
                     password=password,
-                    department=department
+                    role_id=role.id
                 )
                 session.add(new_user)
                 session.commit()
