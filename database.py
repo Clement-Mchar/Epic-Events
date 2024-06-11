@@ -18,6 +18,3 @@ def initialize_database():
     Client.metadata.create_all(engine)
     Contract.metadata.create_all(engine)
     Event.metadata.create_all(engine)
-
-if __name__ == "__main__":
-    initialize_database()
