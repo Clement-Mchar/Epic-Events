@@ -3,6 +3,7 @@ from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.text import Text
 from rich.theme import Theme
+import getpass
 
 custom_theme = Theme({
     "error": "bold red",
@@ -20,7 +21,7 @@ class LoginView:
             console.print(Text("User Login", justify="center"), style="bold blue")
 
             email = Prompt.ask("Enter your email")
-            password = Prompt.ask("Enter your password", password=True)
+            password = getpass.getpass("Enter your password : ")
 
             login_infos = [email, password]
             if not email :

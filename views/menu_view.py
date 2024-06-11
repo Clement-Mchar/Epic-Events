@@ -1,5 +1,4 @@
 from rich.console import Console
-from rich.prompt import Prompt
 from rich.panel import Panel
 from rich.text import Text
 from rich.theme import Theme
@@ -16,7 +15,12 @@ class MenuView:
 
     @classmethod
     def manager_menu_view(cls, user):
-        console.print(Text("Manager Menu", justify="left"), style="bold blue")
-        console.print(Text(f"Hello, {user.full_name}.", justify="center"), style="blue")
-        console.print(Text(f"Select an option :", justify="center"), style="bold")
+        title = "Manager Menu"
+        options = [
+            "1: Create a new collaborator profile"
+        ]
+        menu_panel = Panel.fit("\n".join(options), title=title, border_style="blue", padding=(1, 2))
+        console.print(menu_panel)
 
+        choice = int(console.input("\nSelect an option: "))
+        return choice
