@@ -37,12 +37,12 @@ class ManagerView:
         console.print(table)
         console.print("1. Edit a collaborator account")
         console.print("2. Delete a collaborator account")
-        choice = int(console.input("\nSelect an option: "))
+        choice = int(Prompt.ask("\nSelect an option: "))
         return choice
 
     @classmethod
     def enter_user_id(cls, user, users):
-        choice = console.input(
+        choice = Prompt.ask(
             "Enter the ID of the user you want to edit/delete : "
         )
         return choice
@@ -53,23 +53,23 @@ class ManagerView:
         print("1. Name")
         print("2. Email")
         print("3. Role")
-        choice = int(console.input("\nSelect an option: "))
+        choice = int(Prompt.ask("\nSelect an option: "))
 
         return choice
 
     @classmethod
     def edit_user_name(cls, user, user_to_manage):
-        new_name = console.input("New user name :")
+        new_name = Prompt.ask("New user name :")
         return new_name
 
     @classmethod
     def edit_user_email(cls, user, user_to_manage):
-        new_email = str(console.input("New user email :"))
+        new_email = str(Prompt.ask("New user email :"))
         return new_email
 
     @classmethod
     def edit_user_role(cls, user, user_to_manage):
-        new_role = console.input("New user role :")
+        new_role = Prompt.ask("New user role :")
         return new_role
 
     @classmethod

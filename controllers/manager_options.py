@@ -1,5 +1,3 @@
-from database import SessionLocal
-from sqlalchemy.orm import joinedload
 from models.models import User, Role
 from views.manager_view import ManagerView
 from views.login_view import LoginView

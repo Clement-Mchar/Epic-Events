@@ -46,7 +46,6 @@ class User(Base):
     role_id: Mapped[int] = mapped_column(ForeignKey("role.id"))
     role: Mapped["Role"] = relationship("Role", back_populates="users")
 
-    clients: Mapped[Set["Client"]] = relationship(back_populates="commercial")
     clients: Mapped[List["Client"]] = relationship(back_populates="commercial")
 
     def __init__(self, full_name, email, role_id, **kwargs):
@@ -119,7 +118,7 @@ class Client(Base):
         onupdate=func.now(),
     )
     commercial_contact: Mapped[int] = mapped_column(
-        "commercial_contact", ForeignKey("user.id")
+        ForeignKey("user.id")
     )
 
     commercial: Mapped["User"] = relationship(back_populates="clients")

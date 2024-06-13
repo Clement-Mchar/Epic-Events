@@ -1,5 +1,6 @@
 from views.menu_view import MenuView
 from controllers.manager_options import ManagerOptions
+from controllers.commercial_options import CommercialOptions
 from models.models import User, Client, Contract, Event
 from sqlalchemy.orm import joinedload
 
@@ -10,31 +11,36 @@ class MenusController:
         choice = MenuView.main_menu_view(user)
         try:
             if choice == 1:
-                cls.get_clients(user)
+                cls.get_clients(user, session)
             elif choice == 2:
-                cls.get_contracts(user)
+                cls.get_contracts(user, session)
             elif choice == 3:
-                cls.get_events(user)
+                cls.get_events(user, session)
             if user.role.code == "man":
                 if choice == 4:
                     cls.get_users(user, session)
                 elif choice == 5:
-                    ManagerOptions.create_user(user)
+                    ManagerOptions.create_user(user, session)
                 elif choice == 6:
                     ManagerOptions.create_contract(user)
-                """elif user.role.code == "com":
-                CommercialOptions.create_client(user)
-                CommercialOptions.create_event(user)"""
+            elif user.role.code == "com":
+                if choice == 4:
+                    CommercialOptions.create_client(user, session)
+                elif choice == 5:
+                    CommercialOptions.create_event(user, session)
+
         except Exception as e:
             print(f"Error during main menu: {e}")
 
     @classmethod
     def get_clients(cls, user, session):
-        clients = (
-            session.query(Client)
-            .options(joinedload(Client.commercial_contact))
-            .all()
-        )
+        if user:
+            clients = (
+                session.query(Client)
+                .options(
+                    joinedload(Client.commercial)
+                ).all()
+            )
         MenuView.display_clients(clients, user)
 
     @classmethod
@@ -71,3 +77,4 @@ class MenusController:
     @classmethod
     def return_to_main_menu(cls, user):
         MenuView.main_menu_view(user)
+
