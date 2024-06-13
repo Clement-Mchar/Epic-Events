@@ -36,7 +36,7 @@ class MenuView:
             console.print("4. Create a new client")
             console.print("5. Create an event")
 
-        choice = int(console.input("\nSelect an option: "))
+        choice = int(Prompt.ask("\nSelect an option"))
         return choice
 
     @classmethod
@@ -50,7 +50,7 @@ class MenuView:
         table.add_column("Creation date", style="white")
         table.add_column("Last contact")
         table.add_column("Commercial contact")
-
+        print("test")
         for client in clients:
             table.add_row(
                 str(client.id),
@@ -58,9 +58,9 @@ class MenuView:
                 client.email,
                 str(client.telephone),
                 client.business_name,
-                client.creation_date,
-                client.last_contact,
-                client.commercial_contact.full_name,
+                str(client.creation_date),
+                str(client.last_update),
+                client.commercial.full_name,
             )
 
         console.print(table)
@@ -98,12 +98,12 @@ class MenuView:
 
         if user.role.code == "man":
             console.print("1. Edit contract infos")
-            choice = int(console.input("\nSelect an option: "))
+            choice = int(Prompt.ask("\nSelect an option"))
         if user.role.code == "com":
             console.print("1. Display all contracts that you are in charge of")
             console.print("2. Display all contracts that are not paid yet")
             console.print("3. Display all contracts that are not signed yet")
-            choice = int(console.input("\nSelect an option: "))
+            choice = int(Prompt.ask("\nSelect an option"))
 
         return choice
 
@@ -149,10 +149,10 @@ class MenuView:
         if user.role.code == "man":
             console.print("1. Display all events without support contact")
             console.print("2. Edit an event")
-            choice = int(console.input("\nSelect an option: "))
+            choice = int(Prompt.ask("\nSelect an option"))
         if user.role.code == "sup":
             console.print("1. Display events that you are working on")
             console.print("2. Edit an event")
-            choice = int(console.input("\nSelect an option: "))
+            choice = int(Prompt.ask("\nSelect an option"))
 
         return choice
