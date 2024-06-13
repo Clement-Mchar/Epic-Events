@@ -48,9 +48,9 @@ class MenuView:
         table.add_column("Telephone", style="white")
         table.add_column("Business name", style="white")
         table.add_column("Creation date", style="white")
-        table.add_column("Last contact")
+        table.add_column("Last update")
         table.add_column("Commercial contact")
-        print("test")
+
         for client in clients:
             table.add_row(
                 str(client.id),
@@ -64,6 +64,11 @@ class MenuView:
             )
 
         console.print(table)
+        if user.role.code == "com":
+            console.print("1. Edit a client infos")
+        console.print('\nEnter "menu" to return to the main menu')
+        choice = Prompt.ask("\nSelect an option")
+        return choice
 
     @classmethod
     def display_contracts(cls, contracts, user):
@@ -156,3 +161,8 @@ class MenuView:
             choice = int(Prompt.ask("\nSelect an option"))
 
         return choice
+
+    @classmethod
+    def return_to_main_menu(cls, message, user):
+        confirmation = Prompt.ask(message + " (yes/no)")
+        return confirmation.lower() in ["yes", "y"]

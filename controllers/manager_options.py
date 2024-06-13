@@ -35,39 +35,36 @@ class ManagerOptions:
 
     @classmethod
     def user_management(cls, user, users, session):
+        from controllers.menus import MenusController
         choice = ManagerView.display_users(user, users)
         try:
-            if user.role.code == "man":
-                if choice == 1 or choice == 2:
-                    if choice == 1:
-                        user_id = ManagerView.enter_user_id(user, users)
-                        user_to_manage = session.query(User).get(user_id)
-                        if user_to_manage:
-                            cls.edit_user(user, user_to_manage, session)
-                        else:
-                            session.rollback()
-                            MenuView.display_message(
-                                "Pick a valid collaborator id."
-                            )
-                    elif choice == 2:
-                        user_id = ManagerView.enter_user_id(user, users)
-                        user_to_manage = session.query(User).get(user_id)
-                        if user_to_manage:
-                                cls.delete_user(user, user_to_manage, session)
-                        else:
-                            session.rollback()
-                            MenuView.display_message(
-                                "Collaborator not found. Pick a valid user id."
-                            )
-                else:
-                    session.rollback()
-                    MenuView.display_message("Pick a valid option.")
+            if choice == "1" or choice == "2":
+                if choice == "1":
+                    user_id = ManagerView.enter_user_id(user, users)
+                    user_to_manage = session.query(User).get(user_id)
+                    if user_to_manage:
+                        cls.edit_user(user, user_to_manage, session)
+                    else:
+                        session.rollback()
+                        MenuView.display_message(
+                            "Pick a valid collaborator id."
+                        )
+                elif choice == "2":
+                    user_id = ManagerView.enter_user_id(user, users)
+                    user_to_manage = session.query(User).get(user_id)
+                    if user_to_manage:
+                        cls.delete_user(user, user_to_manage, session)
+                    else:
+                        session.rollback()
+                        MenuView.display_message(
+                            "Collaborator not found. Pick a valid user id."
+                        )
+            elif choice == "menu":
+                MenusController.back_to_main_menu(user, session)
             else:
-                MenuView.display_message(
-                    "You don't have the permission to act on a collaborator's"
-                    " account."
-                )
-                return LoginView.login_view()
+                session.rollback()
+                MenuView.display_message("Pick a valid option.")
+            return LoginView.login_view()
         except Exception as e:
             session.rollback()
             MenuView.display_message(f"Error in user management: {e}")
@@ -75,21 +72,22 @@ class ManagerOptions:
     @classmethod
     def edit_user(cls, user, user_to_manage, session):
         from controllers.menus import MenusController
+
         choice = ManagerView.edit_user_view(user, user_to_manage)
         try:
-            if choice == 1:
+            if choice == "1":
                 new_name = ManagerView.edit_user_name(user, user_to_manage)
                 user_to_manage.full_name = new_name
                 session.commit()
                 MenuView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
-            elif choice == 2:
+            elif choice == "2":
                 new_email = ManagerView.edit_user_email(user, user_to_manage)
                 user_to_manage.email = new_email
                 session.commit()
                 MenuView.display_message("Utilisateur mis à jour avec succès.")
                 MenusController.main_menu(user, session)
-            elif choice == 3:
+            elif choice == "3":
                 new_role_name = ManagerView.edit_user_role(
                     user, user_to_manage
                 )
@@ -102,6 +100,11 @@ class ManagerOptions:
                 session.commit()
                 MenuView.display_message("Utilisateur mis à jour avec succès.")
                 MenusController.main_menu(user, session)
+            elif choice == "menu":
+                MenusController.back_to_main_menu(user, session)
+            else:
+                session.rollback()
+                MenuView.display_message("Pick a valid option.")
         except Exception as e:
             session.rollback()
             MenuView.display_message(f"Error editing user: {e}")
@@ -109,11 +112,11 @@ class ManagerOptions:
     @classmethod
     def delete_user(cls, user, user_to_manage, session):
         from controllers.menus import MenusController
+
         confirmation = ManagerView.delete_user_view(
             "Are you sure you want to delete user with id"
             f" {user_to_manage.id}?",
             user,
-            user_to_manage,
         )
         if confirmation:
             try:

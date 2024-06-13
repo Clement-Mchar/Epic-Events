@@ -4,6 +4,7 @@ from controllers.commercial_options import CommercialOptions
 from models.models import User, Client, Contract, Event
 from sqlalchemy.orm import joinedload
 
+
 class MenusController:
 
     @classmethod
@@ -37,11 +38,10 @@ class MenusController:
         if user:
             clients = (
                 session.query(Client)
-                .options(
-                    joinedload(Client.commercial)
-                ).all()
+                .options(joinedload(Client.commercial))
+                .all()
             )
-        MenuView.display_clients(clients, user)
+        CommercialOptions.clients_management(user, clients, session)
 
     @classmethod
     def get_contracts(cls, user, session):
@@ -75,6 +75,9 @@ class MenusController:
         ManagerOptions.user_management(user, users, session)
 
     @classmethod
-    def return_to_main_menu(cls, user):
-        MenuView.main_menu_view(user)
-
+    def back_to_main_menu(cls, user, session):
+        confirmation = MenuView.return_to_main_menu(
+            "Do you want to go back to the main menu ?", user
+        )
+        if confirmation:
+            cls.main_menu(user, session)
