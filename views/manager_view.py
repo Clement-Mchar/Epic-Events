@@ -37,42 +37,42 @@ class ManagerView:
         console.print(table)
         console.print("1. Edit a collaborator account")
         console.print("2. Delete a collaborator account")
-        choice = int(Prompt.ask("\nSelect an option: "))
+        console.print('\nEnter "menu" to return to the main menu')
+        choice = Prompt.ask("\nSelect an option")
         return choice
 
     @classmethod
     def enter_user_id(cls, user, users):
-        choice = Prompt.ask(
-            "Enter the ID of the user you want to edit/delete : "
-        )
+        choice = Prompt.ask("Enter the ID of the user you want to edit/delete")
         return choice
 
     @classmethod
     def edit_user_view(cls, user, user_to_manage):
-        print("What do you want to modify ?")
-        print("1. Name")
-        print("2. Email")
-        print("3. Role")
-        choice = int(Prompt.ask("\nSelect an option: "))
+        console.print("What do you want to modify ?")
+        console.print("1. Name")
+        console.print("2. Email")
+        console.print("3. Role")
+        console.print('\nEnter "menu" to return to the main menu')
+        choice = Prompt.ask("\nSelect an option")
 
         return choice
 
     @classmethod
     def edit_user_name(cls, user, user_to_manage):
-        new_name = Prompt.ask("New user name :")
+        new_name = Prompt.ask("New user name")
         return new_name
 
     @classmethod
     def edit_user_email(cls, user, user_to_manage):
-        new_email = str(Prompt.ask("New user email :"))
+        new_email = Prompt.ask("New user email")
         return new_email
 
     @classmethod
     def edit_user_role(cls, user, user_to_manage):
-        new_role = Prompt.ask("New user role :")
+        new_role = Prompt.ask("New user role")
         return new_role
 
     @classmethod
-    def delete_user_view(cls, message, user, user_to_manage):
+    def delete_user_view(cls, message, user):
         confirmation = Prompt.ask(message + " (yes/no)")
         return confirmation.lower() in ["yes", "y"]
