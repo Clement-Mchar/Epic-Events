@@ -5,29 +5,34 @@ from rich.text import Text
 from rich.theme import Theme
 import getpass
 
-custom_theme = Theme({
-    "error": "bold red",
-    "input": "bright_black on white",
-    "text": "bold blue"
-})
+custom_theme = Theme(
+    {
+        "error": "bold red",
+        "input": "bright_black on white",
+        "text": "bold blue",
+    }
+)
 
 console = Console(theme=custom_theme)
+
 
 class LoginView:
 
     @classmethod
     def login_view(cls):
         while True:
-            console.print(Text("User Login", justify="center"), style="bold blue")
+            console.print(
+                Text("User Login", justify="center"), style="bold blue"
+            )
 
             email = Prompt.ask("Enter your email")
             password = getpass.getpass("Enter your password : ")
 
             login_infos = [email, password]
-            if not email :
+            if not email:
                 console.print("Please enter your email to continue.")
                 continue
-            elif not password :
+            elif not password:
                 console.print("Please enter your password to continue.")
                 continue
 
