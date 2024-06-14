@@ -6,7 +6,7 @@ import getpass
 console = Console()
 
 
-class ManagerView:
+class UserView:
 
     @classmethod
     def create_user_view(cls, user):
@@ -76,3 +76,11 @@ class ManagerView:
     def delete_user_view(cls, message, user):
         confirmation = Prompt.ask(message + " (yes/no)")
         return confirmation.lower() in ["yes", "y"]
+
+    @classmethod
+    def enter_user_id(cls, user, clients):
+        if user.role.code == "com":
+            choice = Prompt.ask("Enter the ID of the client you want to edit")
+            return choice
+
+

@@ -180,9 +180,7 @@ class Contract(Base):
     client_infos: Mapped[int] = mapped_column(
         "client_infos", ForeignKey("client.id")
     )
-    commercial: Mapped[int] = mapped_column(
-        "commercial", ForeignKey("user.id")
-    )
+
     total_amount: Mapped[int] = mapped_column("total_amount", Integer)
     left_amount: Mapped[int] = mapped_column("left_amount", Integer)
     creation_date: Mapped[datetime.datetime] = mapped_column(
@@ -251,6 +249,7 @@ class Event(Base):
         "contract_id", ForeignKey("contract.id")
     )
     client: Mapped[int] = mapped_column("client", ForeignKey("client.id"))
+    event_name: Mapped[str] = mapped_column("full_name", String(60))
     event_start: Mapped[str] = mapped_column("event_start", String)
     event_end: Mapped[str] = mapped_column("event_end", String)
     support_contact: Mapped[int] = mapped_column(
