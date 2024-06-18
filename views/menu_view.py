@@ -37,6 +37,6 @@ class MainView:
         return choice
 
     @classmethod
-    def return_to_main_menu(cls, message, user):
+    def return_to_main_menu(cls, message):
         confirmation = Prompt.ask(message + " (yes/no)")
         return confirmation.lower() in ["yes", "y"]
