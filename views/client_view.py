@@ -1,6 +1,7 @@
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
+
 console = Console()
 
 
@@ -16,7 +17,6 @@ class ClientView:
         client_infos = [full_name, email, telephone, business_name]
 
         return client_infos
-
 
     @classmethod
     def edit_client_view(cls, user, client_to_edit):
@@ -76,29 +76,9 @@ class ClientView:
 
         console.print(table)
         if user.role.code == "com":
-            console.print('1. Enter "edit" to edit a client infos')
+            console.print("1. Enter the ID of a client to edit its infos")
         elif user.role.code == "man":
             console.print("Enter the ID of a client to create a contract")
         console.print('\nEnter "menu" to return to the main menu')
         choice = Prompt.ask("\n")
         return choice
-
-    @classmethod
-    def create_event(cls):
-        event_name = Prompt.ask("Enter event name")
-        event_start = Prompt.ask("Enter event start time (YYYY-MM-DD HH:MM:SS)")
-        event_end = Prompt.ask("Enter event end time (YYYY-MM-DD HH:MM:SS)")
-        location = Prompt.ask("Enter event location")
-        attendees = Prompt.ask("Enter number of attendees")
-        notes = Prompt.ask("Enter additional notes (optional)", default="")
-
-        event_infos = [
-            event_name,
-            event_start,
-            event_end,
-            location,
-            attendees,
-            notes
-        ]
-
-        return event_infos
