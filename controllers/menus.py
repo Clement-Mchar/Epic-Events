@@ -3,8 +3,6 @@ from controllers.client_controller import ClientController
 from controllers.contract_controller import ContractController
 from controllers.event_controller import EventController
 from controllers.user_controller import UserController
-from models.models import User, Client, Contract, Event
-from sqlalchemy.orm import joinedload
 
 
 class MenusController:
@@ -26,16 +24,25 @@ class MenusController:
                     UserController.create_user(user, session)
                 elif choice == 6:
                     ClientController.get_clients(user, session)
+                else:
+                    session.rollback()
+                    MainView.display_message("Pick a valid option.")
+                    cls.main_menu(user, session)
             elif user.role.code == "com":
                 if choice == 4:
                     ClientController.create_client(user, session)
                 elif choice == 5:
                     EventController.create_event(user, session)
-
+                else:
+                    session.rollback()
+                    MainView.display_message("Pick a valid option.")
+                    cls.main_menu(user, session)
+            else:
+                session.rollback()
+                MainView.display_message("Pick a valid option.")
+                cls.main_menu(user, session)
         except Exception as e:
             print(f"Error during main menu: {e}")
-
-
 
     @classmethod
     def back_to_main_menu(cls, user, session, current_controller_callback):
@@ -43,7 +50,10 @@ class MenusController:
             "Do you want to go back to the main menu ?", user
         )
         if confirmation:
-            cls.main_menu(user, session, )
+            cls.main_menu(
+                user,
+                session,
+            )
         else:
             MainView.display_message("Staying in the current view.")
             current_controller_callback()

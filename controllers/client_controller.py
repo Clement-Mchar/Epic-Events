@@ -1,10 +1,9 @@
 from views.client_view import ClientView
-from views.contract_view import ContractView
 from views.menu_view import MainView
-from views.user_view import UserView
-from models.models import User, Client, Contract
+from models.models import Client
 from functools import partial
 from sqlalchemy.orm import joinedload
+
 
 class ClientController:
 
@@ -29,8 +28,9 @@ class ClientController:
                     f"Client created with id: {new_client.id}"
                 )
             except Exception as e:
-                session.rollback()
                 MainView.display_message(f"Error creating client : {e}")
+                callback = partial(cls.create_client, user, session)
+                MenusController.back_to_main_menu(user, session, callback)
         else:
             MainView.display_message(
                 "You don't have the permission to create a client."
@@ -39,7 +39,6 @@ class ClientController:
 
     @classmethod
     def get_clients(cls, user, session):
-        from controllers.contract_controller import ContractController
         try:
             if user:
                 clients = (
@@ -47,50 +46,55 @@ class ClientController:
                     .options(joinedload(Client.commercial))
                     .all()
                 )
-            if user.role.code == "com":
-                cls.clients_management(user, clients, session)
-            elif user.role.code == "man":
-                ContractController.create_contract(user, clients, session)
+                cls.clients_permissions(user, clients, session)
         except Exception as e:
             print(f"Error during get_clients: {e}")
 
     @classmethod
-    def clients_management(cls, user, clients, session):
+    def clients_permissions(cls, user, clients, session):
         from controllers.menus import MenusController
-        collaborator_options = ClientView.display_clients(clients, user)
+        from controllers.contract_controller import ContractController
+
+        choice = ClientView.display_clients(clients, user)
         if user.role.code == "com":
-            if collaborator_options == "edit" :
-                if user.role.code == "com":
-                    client_id = UserView.enter_user_id(user, clients)
-                    client_to_edit = session.query(Client).get(client_id)
-                    if client_to_edit:
-                        cls.edit_client(user, client_to_edit, session)
-            elif collaborator_options == "menu":
-                MenusController.back_to_main_menu(user, session)
+            if choice == "menu":
+                callback = partial(
+                    cls.clients_permissions, user, clients, session
+                )
+                MenusController.back_to_main_menu(user, session, callback)
             else:
-                session.rollback()
-                MainView.display_message("Pick a valid option.")
+                client_to_edit = session.query(Client).get(choice)
+                if client_to_edit:
+                    cls.edit_client(user, client_to_edit, session)
+                else:
+                    MainView.display_message("No client found.")
+                    cls.clients_permissions(user, clients, session)
+        elif user.role.code == "man":
+            ContractController.create_contract(user, clients, choice, session)
         else:
-            session.rollback()
-            MainView.display_message("Pick a valid option.")
+            if choice != "menu":
+                MainView.display_message("Pick a valid option.")
+                cls.clients_permissions(user, clients, session)
+            else:
+                callback = partial(
+                    cls.clients_permissions, user, clients, session
+                )
+                MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def edit_client(cls, user, client_to_edit, session):
         from controllers.menus import MenusController
+
         choice = ClientView.edit_client_view(user, client_to_edit)
         try:
             if choice == "1":
-                new_name = ClientView.edit_client_name(
-                    user, client_to_edit
-                )
+                new_name = ClientView.edit_client_name(user, client_to_edit)
                 client_to_edit.full_name = new_name
                 session.commit()
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "2":
-                new_email = ClientView.edit_client_email(
-                    user, client_to_edit
-                )
+                new_email = ClientView.edit_client_email(user, client_to_edit)
                 client_to_edit.email = new_email
                 session.commit()
                 MainView.display_message("Updated successfully.")
@@ -104,21 +108,23 @@ class ClientController:
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "4":
-                new_business_name = (
-                    ClientView.edit_client_business_name(
-                        user, client_to_edit
-                    )
+                new_business_name = ClientView.edit_client_business_name(
+                    user, client_to_edit
                 )
                 client_to_edit.business_name = new_business_name
                 session.commit()
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "menu":
-                MenusController.back_to_main_menu(user, session)
+                callback = partial(
+                    cls.edit_client, user, client_to_edit, session
+                )
+                MenusController.back_to_main_menu(user, session, callback)
             else:
                 session.rollback()
                 MainView.display_message("Pick a valid option.")
+                cls.edit_client(user, client_to_edit, session)
         except Exception as e:
             session.rollback()
-            MainView.display_message(f"Error editing client: {e}")
-    
+            MainView.display_message("Please enter a valid ID.")
+            cls.edit_client(user, client_to_edit, session)

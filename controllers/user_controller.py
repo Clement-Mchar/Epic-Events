@@ -1,15 +1,16 @@
 from functools import partial
-from models.models import User, Role, Client, Contract
+from models.models import User, Role
 from views.user_view import UserView
-from views.login_view import LoginView
 from views.menu_view import MainView
 from sqlalchemy.orm import joinedload
+
 
 class UserController:
 
     @classmethod
     def create_user(cls, user, session):
         from controllers.menus import MenusController
+
         user_infos = UserView.create_user_view(user)
         full_name, email, password, role_name = user_infos
         role = session.query(Role).filter(Role.code == role_name).one()
@@ -36,47 +37,57 @@ class UserController:
             callback = partial(cls.create_user, user, session)
             MenusController.back_to_main_menu(user, session, callback)
 
-
     @classmethod
     def get_users(cls, user, session):
         if user:
             users = session.query(User).options(joinedload(User.role)).all()
-        cls.user_management(user, users, session)
+        cls.users_permissions(user, users, session)
 
     @classmethod
-    def user_management(cls, user, users, session):
+    def users_permissions(cls, user, users, session):
         from controllers.menus import MenusController
+
         choice = UserView.display_users(user, users)
         try:
-            if choice == "1" or choice == "2":
-                if choice == "1":
-                    user_id = UserView.enter_user_id(user, users)
-                    user_to_manage = session.query(User).get(user_id)
-                    if user_to_manage:
-                        cls.edit_user(user, user_to_manage, session)
-                    else:
-                        session.rollback()
-                        MainView.display_message(
-                            "Pick a valid collaborator id."
-                        )
-                elif choice == "2":
-                    user_id = UserView.enter_user_id(user, users)
-                    user_to_manage = session.query(User).get(user_id)
-                    if user_to_manage:
-                        cls.delete_user(user, user_to_manage, session)
-                    else:
-                        session.rollback()
-                        MainView.display_message(
-                            "Collaborator not found. Pick a valid user id."
-                        )
-            elif choice == "menu":
-                callback = partial(cls.user_management, user, users, session)
-                MenusController.back_to_main_menu(user, session, callback)
+            if user.role.code == "man":
+                if choice == "1" or choice == "2":
+                    if choice == "1":
+                        user_id = UserView.enter_user_id(user, users)
+                        user_to_manage = session.query(User).get(user_id)
+                        if user_to_manage:
+                            cls.edit_user(user, user_to_manage, session)
+                        else:
+                            session.rollback()
+                            MainView.display_message(
+                                "Pick a valid collaborator id."
+                            )
+                    elif choice == "2":
+                        user_id = UserView.enter_user_id(user, users)
+                        user_to_manage = session.query(User).get(user_id)
+                        if user_to_manage:
+                            cls.delete_user(user, user_to_manage, session)
+                        else:
+                            session.rollback()
+                            MainView.display_message(
+                                "Collaborator not found. Pick a valid user id."
+                            )
+                elif choice == "menu":
+                    callback = partial(
+                        cls.users_permissions, user, users, session
+                    )
+                    MenusController.back_to_main_menu(user, session, callback)
+                else:
+                    MainView.display_message("Pick a valid option.")
+                    cls.users_permissions(user, users, session)
             else:
-                session.rollback()
-                MainView.display_message("Pick a valid option.")
-                callback = partial(cls.user_management, user, users, session)
-                MenusController.back_to_main_menu(user, session, callback)
+                if choice == "menu":
+                    callback = partial(
+                        cls.users_permissions, user, users, session
+                    )
+                    MenusController.back_to_main_menu(user, session, callback)
+                else:
+                    MainView.display_message("Pick a valid option.")
+                    cls.users_permissions(user, users, session)
         except Exception as e:
             session.rollback()
             MainView.display_message(f"Error in user management: {e}")
@@ -100,9 +111,7 @@ class UserController:
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "3":
-                new_role_name = UserView.edit_user_role(
-                    user, user_to_manage
-                )
+                new_role_name = UserView.edit_user_role(user, user_to_manage)
                 new_role = (
                     session.query(Role)
                     .filter(Role.name == new_role_name)
@@ -113,14 +122,18 @@ class UserController:
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "menu":
-                callback = partial(cls.edit_user, user, user_to_manage, session)
+                callback = partial(
+                    cls.edit_user, user, user_to_manage, session
+                )
                 MenusController.back_to_main_menu(user, session, callback)
             else:
                 session.rollback()
                 MainView.display_message("Pick a valid option.")
+                cls.edit_user(user, user_to_manage, session)
         except Exception as e:
             session.rollback()
-            MainView.display_message(f"Error editing user: {e}")
+            MainView.display_message("Please enter a valid ID.")
+            cls.edit_user(user, user_to_manage, session)
 
     @classmethod
     def delete_user(cls, user, user_to_manage, session):
@@ -146,4 +159,3 @@ class UserController:
         else:
             MainView.display_message("User deletion canceled.")
             MenusController.main_menu(user, session)
-
