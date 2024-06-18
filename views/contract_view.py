@@ -1,7 +1,7 @@
-
 from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
+
 console = Console()
 
 
@@ -60,12 +60,12 @@ class ContractView:
     def edit_contract_amount_due(cls):
         new_amount_due = Prompt.ask("New amount due")
         return new_amount_due
-    
+
     @classmethod
     def edit_contract_status(cls):
         new_status = Prompt.ask("Contract signed (yes/no)")
         return new_status
-        
+
     @classmethod
     def enter_contract_id(cls, user):
         choice = Prompt.ask("Enter the ID of the contract you want to edit")
@@ -111,8 +111,9 @@ class ContractView:
             console.print("2. Display all contracts that you are in charge of")
             console.print("3. Display all contracts that are not paid yet")
             console.print("4. Display all contracts that are not signed yet")
+            console.print("5. Create an event")
+        console.print('\nEnter "menu" to return to the main menu')
         choice = Prompt.ask("\nSelect an option")
-
         return choice
 
     @classmethod

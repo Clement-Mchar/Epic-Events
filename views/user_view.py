@@ -78,9 +78,6 @@ class UserView:
         return confirmation.lower() in ["yes", "y"]
 
     @classmethod
-    def enter_user_id(cls, user, clients):
-        if user.role.code == "com":
-            choice = Prompt.ask("Enter the ID of the client you want to edit")
-            return choice
-
-
+    def enter_user_id(cls, user, users):
+        choice = Prompt.ask("Enter the ID of the user you want to edit")
+        return choice

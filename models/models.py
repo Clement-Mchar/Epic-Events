@@ -11,7 +11,6 @@ import re
 
 force_auto_coercion()
 
-
 class Role(Base):
     """Sets the model for the role object's creation"""
 
@@ -47,6 +46,7 @@ class User(Base):
     role: Mapped["Role"] = relationship("Role", back_populates="users")
 
     clients: Mapped[List["Client"]] = relationship(back_populates="commercial")
+    events: Mapped[List["Event"]] = relationship(back_populates="support")
 
     def __init__(self, full_name, email, role_id, **kwargs):
         self.set_full_name(full_name)
@@ -117,9 +117,7 @@ class Client(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
-    commercial_contact: Mapped[int] = mapped_column(
-        ForeignKey("user.id")
-    )
+    commercial_contact: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     commercial: Mapped["User"] = relationship(back_populates="clients")
     contracts: Mapped[List["Contract"]] = relationship(back_populates="client")
@@ -248,17 +246,17 @@ class Event(Base):
     contract_id: Mapped[int] = mapped_column(
         "contract_id", ForeignKey("contract.id")
     )
-    client: Mapped[int] = mapped_column("client", ForeignKey("client.id"))
     event_name: Mapped[str] = mapped_column("full_name", String(60))
     event_start: Mapped[str] = mapped_column("event_start", String)
     event_end: Mapped[str] = mapped_column("event_end", String)
     support_contact: Mapped[int] = mapped_column(
-        "support_contact", ForeignKey("user.id")
+        "support_contact", ForeignKey("user.id"), nullable=True
     )
     location: Mapped[str] = mapped_column("location", String)
     attendees: Mapped[int] = mapped_column("attendees", Integer)
     notes: Mapped[str] = mapped_column("notes", String)
 
+    support : Mapped["User"] = relationship(back_populates="events")
     contract: Mapped["Contract"] = relationship(back_populates="event")
 
     def validate_contract_id(self, value):

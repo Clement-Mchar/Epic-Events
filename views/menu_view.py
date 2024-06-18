@@ -1,8 +1,6 @@
 from rich.console import Console
 from rich.prompt import Prompt
-from rich.text import Text
 from rich.theme import Theme
-from rich.table import Table
 
 custom_theme = Theme(
     {
@@ -34,13 +32,9 @@ class MainView:
             console.print("6. Create a new contract")
         if user.role.code == "com":
             console.print("4. Create a new client")
-            console.print("5. Create an event")
 
         choice = int(Prompt.ask("\nSelect an option"))
         return choice
-
-
-
 
     @classmethod
     def return_to_main_menu(cls, message, user):
