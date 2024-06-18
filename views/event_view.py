@@ -33,11 +33,7 @@ class EventView:
                 client_infos,
                 event.event_start,
                 event.event_end,
-                (
-                    event.support.full_name
-                    if event.support
-                    else "N/A"
-                ),
+                (event.support.full_name if event.support else "N/A"),
                 event.location,
                 str(event.attendees),
                 event.notes,
@@ -78,17 +74,19 @@ class EventView:
         return event_infos
 
     @classmethod
-    def event_contract_id(cls, user):
-        choice = Prompt.ask("Enter the ID of the contract you want to create an event for")
+    def event_contract_id(cls):
+        choice = Prompt.ask(
+            "Enter the ID of the contract you want to create an event for"
+        )
         return choice
 
     @classmethod
-    def get_event_id(cls, user):
+    def get_event_id(cls):
         choice = int(Prompt.ask("Enter the ID of the event you want to edit"))
         return choice
 
     @classmethod
-    def edit_event_view(cls, user, event_to_edit):
+    def edit_event_view(cls, user):
         console.print("What do you want to edit ?")
         if user.role.code == "man":
             console.print("Manager Options :")
@@ -123,7 +121,10 @@ class EventView:
                 user.role.name,
             )
         console.print(table)
-        console.print("1. Enter the ID of the collaborator you want to assign to the event")
+        console.print(
+            "1. Enter the ID of the collaborator you want to assign to the"
+            " event"
+        )
         console.print('\nEnter "menu" to return to the main menu')
         choice = Prompt.ask("\nSelect an option")
         return choice
@@ -135,12 +136,16 @@ class EventView:
 
     @classmethod
     def edit_event_start(cls):
-        new_event_start = Prompt.ask("Enter event start time (YYYY-MM-DD HH:MM:SS)")
+        new_event_start = Prompt.ask(
+            "Enter event start time (YYYY-MM-DD HH:MM:SS)"
+        )
         return new_event_start
 
     @classmethod
     def edit_event_end(cls):
-        new_event_end = Prompt.ask("Enter event end time (YYYY-MM-DD HH:MM:SS)")
+        new_event_end = Prompt.ask(
+            "Enter event end time (YYYY-MM-DD HH:MM:SS)"
+        )
         return new_event_end
 
     @classmethod
@@ -190,6 +195,8 @@ class EventView:
                 status,
             )
         console.print(table)
-        new_event_contract = Prompt.ask("Enter the ID of the contract you want to assign to the event")
+        new_event_contract = Prompt.ask(
+            "Enter the ID of the contract you want to assign to the event"
+        )
 
         return new_event_contract

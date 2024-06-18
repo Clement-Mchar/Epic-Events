@@ -45,9 +45,9 @@ class MenusController:
             print(f"Error during main menu: {e}")
 
     @classmethod
-    def back_to_main_menu(cls, user, session, current_controller_callback):
+    def back_to_main_menu(cls, user, session, callback):
         confirmation = MainView.return_to_main_menu(
-            "Do you want to go back to the main menu ?", user
+            "Do you want to go back to the main menu ?"
         )
         if confirmation:
             cls.main_menu(
@@ -56,4 +56,4 @@ class MenusController:
             )
         else:
             MainView.display_message("Staying in the current view.")
-            current_controller_callback()
+            callback()

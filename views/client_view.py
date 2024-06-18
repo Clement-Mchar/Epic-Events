@@ -8,7 +8,7 @@ console = Console()
 class ClientView:
 
     @classmethod
-    def create_client(cls, user):
+    def create_client(cls):
         full_name = Prompt.ask("Enter client name")
         email = Prompt.ask("Enter client email")
         telephone = Prompt.ask("Enter client number")
@@ -19,7 +19,7 @@ class ClientView:
         return client_infos
 
     @classmethod
-    def edit_client_view(cls, user, client_to_edit):
+    def edit_client_view(cls):
         console.print("What do you want to modify ?")
         console.print("1. Name")
         console.print("2. Email")
@@ -31,22 +31,22 @@ class ClientView:
         return choice
 
     @classmethod
-    def edit_client_name(cls, user, client_to_edit):
+    def edit_client_name(cls):
         new_name = Prompt.ask("New client name")
         return new_name
 
     @classmethod
-    def edit_client_email(cls, user, client_to_edit):
+    def edit_client_email(cls):
         new_email = str(Prompt.ask("New client email"))
         return new_email
 
     @classmethod
-    def edit_client_number(cls, user, client_to_edit):
+    def edit_client_number(cls):
         new_number = Prompt.ask("New client number")
         return new_number
 
     @classmethod
-    def edit_client_business_name(cls, user, client_to_edit):
+    def edit_client_business_name(cls):
         new_business_name = Prompt.ask("New client business name")
         return new_business_name
 

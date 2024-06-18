@@ -8,7 +8,7 @@ console = Console()
 class ContractView:
 
     @classmethod
-    def display_user_contracts(cls, contracts, user):
+    def display_user_contracts(cls, contracts):
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white")
         table.add_column("Client name", style="white")
@@ -41,7 +41,7 @@ class ContractView:
         console.print(table)
 
     @classmethod
-    def edit_contract_view(cls, user, contract_to_edit):
+    def edit_contract_view(cls):
         console.print("What do you want to modify ?")
         console.print("1. Total amount")
         console.print("2. Amount due")
@@ -67,7 +67,7 @@ class ContractView:
         return new_status
 
     @classmethod
-    def enter_contract_id(cls, user):
+    def enter_contract_id(cls):
         choice = Prompt.ask("Enter the ID of the contract you want to edit")
         return choice
 

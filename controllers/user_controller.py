@@ -11,7 +11,7 @@ class UserController:
     def create_user(cls, user, session):
         from controllers.menus import MenusController
 
-        user_infos = UserView.create_user_view(user)
+        user_infos = UserView.create_user_view()
         full_name, email, password, role_name = user_infos
         role = session.query(Role).filter(Role.code == role_name).one()
         if user.role.code == "man":
@@ -47,12 +47,12 @@ class UserController:
     def users_permissions(cls, user, users, session):
         from controllers.menus import MenusController
 
-        choice = UserView.display_users(user, users)
+        choice = UserView.display_users(users)
         try:
             if user.role.code == "man":
                 if choice == "1" or choice == "2":
                     if choice == "1":
-                        user_id = UserView.enter_user_id(user, users)
+                        user_id = UserView.enter_user_id()
                         user_to_manage = session.query(User).get(user_id)
                         if user_to_manage:
                             cls.edit_user(user, user_to_manage, session)
@@ -62,7 +62,7 @@ class UserController:
                                 "Pick a valid collaborator id."
                             )
                     elif choice == "2":
-                        user_id = UserView.enter_user_id(user, users)
+                        user_id = UserView.delete_user_id()
                         user_to_manage = session.query(User).get(user_id)
                         if user_to_manage:
                             cls.delete_user(user, user_to_manage, session)
@@ -96,22 +96,22 @@ class UserController:
     def edit_user(cls, user, user_to_manage, session):
         from controllers.menus import MenusController
 
-        choice = UserView.edit_user_view(user, user_to_manage)
+        choice = UserView.edit_user_view()
         try:
             if choice == "1":
-                new_name = UserView.edit_user_name(user, user_to_manage)
+                new_name = UserView.edit_user_name()
                 user_to_manage.full_name = new_name
                 session.commit()
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "2":
-                new_email = UserView.edit_user_email(user, user_to_manage)
+                new_email = UserView.edit_user_email()
                 user_to_manage.email = new_email
                 session.commit()
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "3":
-                new_role_name = UserView.edit_user_role(user, user_to_manage)
+                new_role_name = UserView.edit_user_role()
                 new_role = (
                     session.query(Role)
                     .filter(Role.name == new_role_name)
@@ -141,8 +141,7 @@ class UserController:
 
         confirmation = UserView.delete_user_view(
             "Are you sure you want to delete user with id"
-            f" {user_to_manage.id}?",
-            user,
+            f" {user_to_manage.id}?"
         )
         if confirmation:
             try:

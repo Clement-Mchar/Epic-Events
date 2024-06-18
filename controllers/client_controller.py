@@ -11,7 +11,7 @@ class ClientController:
     def create_client(cls, user, session):
         from controllers.menus import MenusController
 
-        client_infos = ClientView.create_client(user)
+        client_infos = ClientView.create_client()
         full_name, email, telephone, business_name = client_infos
         if user.role.code == "com":
             try:
@@ -57,12 +57,6 @@ class ClientController:
 
         choice = ClientView.display_clients(clients, user)
         if user.role.code == "com":
-            if choice == "menu":
-                callback = partial(
-                    cls.clients_permissions, user, clients, session
-                )
-                MenusController.back_to_main_menu(user, session, callback)
-            else:
                 client_to_edit = session.query(Client).get(choice)
                 if client_to_edit:
                     cls.edit_client(user, client_to_edit, session)
@@ -71,51 +65,43 @@ class ClientController:
                     cls.clients_permissions(user, clients, session)
         elif user.role.code == "man":
             ContractController.create_contract(user, clients, choice, session)
+
+        if choice == "menu":
+            callback = partial(
+                cls.clients_permissions, user, clients, session
+            )
+            MenusController.back_to_main_menu(user, session, callback)
         else:
-            if choice != "menu":
-                MainView.display_message("Pick a valid option.")
-                cls.clients_permissions(user, clients, session)
-            else:
-                callback = partial(
-                    cls.clients_permissions, user, clients, session
-                )
-                MenusController.back_to_main_menu(user, session, callback)
+            MainView.display_message("Pick a valid option.")
+            cls.clients_permissions(user, clients, session)
 
     @classmethod
     def edit_client(cls, user, client_to_edit, session):
         from controllers.menus import MenusController
 
-        choice = ClientView.edit_client_view(user, client_to_edit)
+        choice = ClientView.edit_client_view()
         try:
             if choice == "1":
-                new_name = ClientView.edit_client_name(user, client_to_edit)
+                new_name = ClientView.edit_client_name()
                 client_to_edit.full_name = new_name
                 session.commit()
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "2":
-                new_email = ClientView.edit_client_email(user, client_to_edit)
+                new_email = ClientView.edit_client_email()
                 client_to_edit.email = new_email
-                session.commit()
-                MainView.display_message("Updated successfully.")
-                MenusController.main_menu(user, session)
             elif choice == "3":
-                new_number = ClientView.edit_client_number(
-                    user, client_to_edit
-                )
+                new_number = ClientView.edit_client_number()
                 client_to_edit.telephone = new_number
-                session.commit()
-                MainView.display_message("Updated successfully.")
-                MenusController.main_menu(user, session)
             elif choice == "4":
-                new_business_name = ClientView.edit_client_business_name(
-                    user, client_to_edit
-                )
+                new_business_name = ClientView.edit_client_business_name()
                 client_to_edit.business_name = new_business_name
-                session.commit()
-                MainView.display_message("Updated successfully.")
-                MenusController.main_menu(user, session)
-            elif choice == "menu":
+
+            session.commit()
+            MainView.display_message("Updated successfully.")
+            MenusController.main_menu(user, session)
+
+            if choice == "menu":
                 callback = partial(
                     cls.edit_client, user, client_to_edit, session
                 )

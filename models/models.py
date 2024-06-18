@@ -11,6 +11,7 @@ import re
 
 force_auto_coercion()
 
+
 class Role(Base):
     """Sets the model for the role object's creation"""
 
@@ -256,7 +257,7 @@ class Event(Base):
     attendees: Mapped[int] = mapped_column("attendees", Integer)
     notes: Mapped[str] = mapped_column("notes", String)
 
-    support : Mapped["User"] = relationship(back_populates="events")
+    support: Mapped["User"] = relationship(back_populates="events")
     contract: Mapped["Contract"] = relationship(back_populates="event")
 
     def validate_contract_id(self, value):

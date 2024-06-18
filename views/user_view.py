@@ -9,7 +9,7 @@ console = Console()
 class UserView:
 
     @classmethod
-    def create_user_view(cls, user):
+    def create_user_view(cls):
         full_name = Prompt.ask("Collaborator name ")
         email = Prompt.ask("Collaborator email ")
         password = getpass.getpass("Collaborator password ")
@@ -20,7 +20,7 @@ class UserView:
         return user_infos
 
     @classmethod
-    def display_users(cls, user, users):
+    def display_users(cls, users):
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white")
         table.add_column("Full name", style="white")
@@ -42,12 +42,12 @@ class UserView:
         return choice
 
     @classmethod
-    def enter_user_id(cls, user, users):
-        choice = Prompt.ask("Enter the ID of the user you want to edit/delete")
+    def enter_user_id(cls):
+        choice = Prompt.ask("Enter the ID of the user you want to edit")
         return choice
 
     @classmethod
-    def edit_user_view(cls, user, user_to_manage):
+    def edit_user_view(cls):
         console.print("What do you want to modify ?")
         console.print("1. Name")
         console.print("2. Email")
@@ -58,26 +58,26 @@ class UserView:
         return choice
 
     @classmethod
-    def edit_user_name(cls, user, user_to_manage):
+    def edit_user_name(cls):
         new_name = Prompt.ask("New user name")
         return new_name
 
     @classmethod
-    def edit_user_email(cls, user, user_to_manage):
+    def edit_user_email(cls):
         new_email = Prompt.ask("New user email")
         return new_email
 
     @classmethod
-    def edit_user_role(cls, user, user_to_manage):
+    def edit_user_role(cls):
         new_role = Prompt.ask("New user role")
         return new_role
 
     @classmethod
-    def delete_user_view(cls, message, user):
+    def delete_user_view(cls, message):
         confirmation = Prompt.ask(message + " (yes/no)")
         return confirmation.lower() in ["yes", "y"]
 
     @classmethod
-    def enter_user_id(cls, user, users):
-        choice = Prompt.ask("Enter the ID of the user you want to edit")
+    def delete_user_id(cls):
+        choice = Prompt.ask("Enter the ID of the user you want to delete")
         return choice

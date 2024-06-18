@@ -49,6 +49,7 @@ class ContractController:
     def contracts_permissions(cls, user, contracts, session):
         from controllers.menus import MenusController
         from controllers.event_controller import EventController
+
         choice = ContractView.display_contracts(contracts, user)
         if user.role.code == "man":
             if choice == "1":
@@ -71,7 +72,7 @@ class ContractController:
     def edit_contract(cls, user, contracts, session):
         from controllers.menus import MenusController
 
-        contract_id = ContractView.enter_contract_id(user)
+        contract_id = ContractView.enter_contract_id()
         try:
             contract_to_edit = session.query(Contract).get(contract_id)
             if contract_to_edit:

@@ -1,7 +1,7 @@
 from views.event_view import EventView
 from views.menu_view import MainView
 from views.user_view import UserView
-from models.models import Event, Contract, User, Role
+from models.models import Event, Contract, User, Role, Client
 from sqlalchemy.orm import joinedload
 from functools import partial
 
@@ -11,6 +11,7 @@ class EventController:
     @classmethod
     def create_event(cls, user, session):
         from controllers.menus import MenusController
+
         contract_id = EventView.event_contract_id(user)
         contract = session.query(Contract).get(contract_id)
 
@@ -28,7 +29,7 @@ class EventController:
             if user.role.code == "com":
                 try:
                     new_event = Event(
-                        contract_id = contract.id,
+                        contract_id=contract.id,
                         event_name=event_name,
                         event_start=event_start,
                         event_end=event_end,
@@ -54,6 +55,7 @@ class EventController:
     @classmethod
     def get_events(cls, user, session):
         from controllers.menus import MenusController
+
         events = (
             session.query(Event)
             .options(
@@ -62,25 +64,26 @@ class EventController:
             )
             .all()
         )
-        if events :
+        if events:
             cls.events_permissions(user, events, session)
-        else :
+        else:
             MainView.display_message("No events found")
             return MenusController.main_menu(user, session)
 
     @classmethod
     def events_permissions(cls, user, events, session):
         from controllers.menus import MenusController
+
         choice = EventView.display_events(events, user)
         try:
             if user.role.code == "man":
                 if choice == "1":
-                    cls.filter_events(user, events, choice, session)
+                    cls.filter_events(user, choice, session)
                 elif choice == "2":
                     cls.edit_event(user, events, session)
             elif user.role.code == "sup":
                 if choice == "1":
-                    cls.filter_events(user, events, choice, session)
+                    cls.filter_events(user, choice, session)
                 elif choice == "2":
                     cls.edit_event(user, events, session)
             if choice == "menu":
@@ -96,18 +99,15 @@ class EventController:
     @classmethod
     def edit_event(cls, user, events, session):
         from controllers.menus import MenusController
-        event_id = EventView.get_event_id(user)
+
+        event_id = EventView.get_event_id()
         try:
             event_to_edit = session.query(Event).get(event_id)
             if event_to_edit:
-                choice = EventView.edit_event_view(
-                    user, event_to_edit
-                )
+                choice = EventView.edit_event_view(user)
                 if user.role.code == "sup":
                     if choice == "1":
-                        new_event_name = (
-                            EventView.edit_event_name()
-                        )
+                        new_event_name = EventView.edit_event_name()
                         event_to_edit.event_name = new_event_name
                         session.commit()
                         MainView.display_message("Updated successfully.")
@@ -120,14 +120,12 @@ class EventController:
                         MenusController.main_menu(user, session)
                     elif choice == "3":
                         new_event_end = EventView.edit_event_end()
-                        event_to_edit.event_end  = new_event_end
+                        event_to_edit.event_end = new_event_end
                         session.commit()
                         MainView.display_message("Updated successfully.")
                         MenusController.main_menu(user, session)
                     elif choice == "4":
-                        new_location= (
-                            EventView.edit_event_location()
-                        )
+                        new_location = EventView.edit_event_location()
                         event_to_edit.location = new_location
                         session.commit()
                         MainView.display_message("Updated successfully.")
@@ -140,7 +138,7 @@ class EventController:
                         MenusController.main_menu(user, session)
                     elif choice == "6":
                         new_event_notes = EventView.edit_event_notes()
-                        event_to_edit.notes  = new_event_notes
+                        event_to_edit.notes = new_event_notes
                         session.commit()
                         MainView.display_message("Updated successfully.")
                         MenusController.main_menu(user, session)
@@ -166,16 +164,18 @@ class EventController:
                             .join(Contract.client)
                             .all()
                         )
-                        new_contract_id = EventView.edit_event_contract(contracts)
-                        new_contract = session.query(Contract).get(new_contract_id)
+                        new_contract_id = EventView.edit_event_contract(
+                            contracts
+                        )
+                        new_contract = session.query(Contract).get(
+                            new_contract_id
+                        )
                         event_to_edit.contract = new_contract
                         session.commit()
                         MainView.display_message("Updated successfully.")
                         MenusController.main_menu(user, session)
                 if choice == "menu":
-                    callback = partial(
-                        cls.edit_event, user, events, session
-                    )
+                    callback = partial(cls.edit_event, user, events, session)
                     MenusController.back_to_main_menu(user, session, callback)
                 else:
                     session.rollback()
@@ -189,7 +189,41 @@ class EventController:
             MainView.display_message("Please enter a valid ID.")
             cls.edit_event(user, events, session)
 
-'''
+    @classmethod
+    def filter_events(cls, user, choice, session):
+        from controllers.menus import MenusController
+        if user.role.code == "man":
+            events = (
+                session.query(Event)
+                .filter(Event.support == None)
+                .options(
+                    joinedload(Event.support),
+                    joinedload(Event.contract),
+                )
+                .all()
+            )
+            if events:
+                cls.events_permissions(user, events, session)
+            else:
+                MainView.display_message("No event found")
+                MenusController.main_menu(user, session)
+        elif user.role.code == "sup":
+            events = (
+                session.query(Event)
+                .filter(Event.support_contact == user.id)
+                .options(
+                    joinedload(Event.support),
+                    joinedload(Event.contract),
+                ).all()
+            )
+            if events:
+                cls.events_permissions(user, events, session)
+            else:
+                MainView.display_message("No event found")
+                MenusController.main_menu(user, session)
+
+
+"""
 Manager:
 Filtrer laffichage des événements, par exemple : afficher tous les
 événements qui nont pas de « support » associé.
@@ -199,4 +233,4 @@ Support:
 ● Filtrer laffichage des événements, par exemple : afficher
 uniquement les événements qui leur sont attribués.
 ● Mettre à jour les événements dont ils sont responsables
-'''
+"""
