@@ -3,6 +3,7 @@ from models.models import User, Role
 from views.user_view import UserView
 from views.menu_view import MainView
 from sqlalchemy.orm import joinedload
+import sentry_sdk
 
 
 class UserController:
@@ -11,11 +12,11 @@ class UserController:
     def create_user(cls, user, session):
         from controllers.menus import MenusController
 
-        user_infos = UserView.create_user_view()
-        full_name, email, password, role_name = user_infos
-        role = session.query(Role).filter(Role.code == role_name).one()
-        if user.role.code == "man":
-            try:
+        try:
+            user_infos = UserView.create_user_view()
+            full_name, email, password, role_name = user_infos
+            role = session.query(Role).filter(Role.code == role_name).one()
+            if user.role.code == "man":
                 new_user = User(
                     full_name=full_name,
                     email=email,
@@ -27,28 +28,38 @@ class UserController:
                 MainView.display_message(
                     f"User created with id: {new_user.id}"
                 )
-            except Exception as e:
-                session.rollback()
-                MainView.display_message(f"Error creating user : {e}")
-        else:
-            MainView.display_message(
-                "You don't have the permission to create an user."
-            )
+            else:
+                MainView.display_message(
+                    "You don't have the permission to create an user."
+                )
+                callback = partial(cls.create_user, user, session)
+                MenusController.back_to_main_menu(user, session, callback)
+        except Exception as e:
+            session.rollback()
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error creating user : {e}")
             callback = partial(cls.create_user, user, session)
             MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def get_users(cls, user, session):
-        if user:
-            users = session.query(User).options(joinedload(User.role)).all()
-        cls.users_permissions(user, users, session)
+        from controllers.menus import MenusController
+        try:
+            if user:
+                users = session.query(User).options(joinedload(User.role)).all()
+            cls.users_permissions(user, users, session)
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error getting users : {e}")
+            callback = partial(cls.get_users, user, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def users_permissions(cls, user, users, session):
         from controllers.menus import MenusController
 
-        choice = UserView.display_users(users)
         try:
+            choice = UserView.display_users(users)
             if user.role.code == "man":
                 if choice == "1" or choice == "2":
                     if choice == "1":
@@ -90,14 +101,17 @@ class UserController:
                     cls.users_permissions(user, users, session)
         except Exception as e:
             session.rollback()
-            MainView.display_message(f"Error in user management: {e}")
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error getting users permissions: {e}")
+            callback = partial(cls.users_permissions, user, users, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def edit_user(cls, user, user_to_manage, session):
         from controllers.menus import MenusController
 
-        choice = UserView.edit_user_view()
         try:
+            choice = UserView.edit_user_view()
             if choice == "1":
                 new_name = UserView.edit_user_name()
                 user_to_manage.full_name = new_name
@@ -132,29 +146,31 @@ class UserController:
                 cls.edit_user(user, user_to_manage, session)
         except Exception as e:
             session.rollback()
-            MainView.display_message("Please enter a valid ID.")
-            cls.edit_user(user, user_to_manage, session)
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error editing user: {e}")
+            callback = partial(cls.edit_user, user, user_to_manage, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def delete_user(cls, user, user_to_manage, session):
         from controllers.menus import MenusController
-
-        confirmation = UserView.delete_user_view(
-            "Are you sure you want to delete user with id"
-            f" {user_to_manage.id}?"
-        )
-        if confirmation:
-            try:
+        try:
+            confirmation = UserView.delete_user_view(
+                "Are you sure you want to delete user with id"
+                f" {user_to_manage.id}?"
+            )
+            if confirmation:
                 session.delete(user_to_manage)
                 session.commit()
                 MainView.display_message(
                     f"User with id {user_to_manage.id} deleted successfully."
                 )
                 MenusController.main_menu(user, session)
-            except Exception as e:
-                session.rollback()
-                MainView.display_message(f"Error deleting user: {e}")
-                cls.delete_user(user, user_to_manage, session)
-        else:
-            MainView.display_message("User deletion canceled.")
-            MenusController.main_menu(user, session)
+            else:
+                MainView.display_message("User deletion canceled.")
+                MenusController.main_menu(user, session)
+        except Exception as e:
+            session.rollback()
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error deleting user: {e}")
+            cls.delete_user(user, user_to_manage, session)

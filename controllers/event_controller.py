@@ -4,6 +4,7 @@ from views.user_view import UserView
 from models.models import Event, Contract, User, Role, Client
 from sqlalchemy.orm import joinedload
 from functools import partial
+import sentry_sdk
 
 
 class EventController:
@@ -12,22 +13,29 @@ class EventController:
     def create_event(cls, user, session):
         from controllers.menus import MenusController
 
-        contract_id = EventView.event_contract_id(user)
-        contract = session.query(Contract).get(contract_id)
-
-        if contract.status == False:
-            MainView.display_message(
-                f"Contract {contract.id} is not signed yet."
-            )
-            cls.create_event(user, session)
-        else:
-
-            event_infos = EventView.create_event()
-            event_name, event_start, event_end, location, attendees, notes = (
-                event_infos
-            )
-            if user.role.code == "com":
-                try:
+        try:
+            contract_id = EventView.event_contract_id()
+            contract = session.query(Contract).get(contract_id)
+            if contract.status == False:
+                MainView.display_message(
+                    f"Contract n°{contract.id} is not signed yet."
+                )
+                cls.create_event(user, session)
+            elif contract.event != None:
+                MainView.display_message(
+                    f"This contract already have an event attached to it."
+                )
+            else:
+                event_infos = EventView.create_event()
+                (
+                    event_name,
+                    event_start,
+                    event_end,
+                    location,
+                    attendees,
+                    notes,
+                ) = event_infos
+                if user.role.code == "com":
                     new_event = Event(
                         contract_id=contract.id,
                         event_name=event_name,
@@ -38,52 +46,61 @@ class EventController:
                         notes=notes,
                     )
                     session.add(new_event)
+                    contract.event == new_event
                     session.commit()
                     MainView.display_message(
                         f"Event created with id: {new_event.id}"
                     )
-                except Exception as e:
-                    MainView.display_message(f"Error creating event : {e}")
-                    callback = partial(cls.create_event, user, session)
-                    MenusController.back_to_main_menu(user, session, callback)
-            else:
-                MainView.display_message(
-                    "You don't have the permission to create an event."
-                )
-                return MenusController.main_menu(user, session)
+                else:
+                    MainView.display_message(
+                        "You don't have the permission to create an event."
+                    )
+                    return MenusController.main_menu(user, session)
+
+        except Exception as e:
+            session.rollback()
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error creating event : {e}")
+            callback = partial(cls.create_event, user, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def get_events(cls, user, session):
         from controllers.menus import MenusController
 
-        events = (
-            session.query(Event)
-            .options(
-                joinedload(Event.contract),
-                joinedload(Event.support),
+        try:
+            events = (
+                session.query(Event)
+                .options(
+                    joinedload(Event.contract),
+                    joinedload(Event.support),
+                )
+                .all()
             )
-            .all()
-        )
-        if events:
-            cls.events_permissions(user, events, session)
-        else:
-            MainView.display_message("No events found")
-            return MenusController.main_menu(user, session)
+            if events:
+                cls.events_permissions(user, events, session)
+            else:
+                MainView.display_message("No events found")
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error getting events : {e}")
+            callback = partial(cls.get_events, user, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def events_permissions(cls, user, events, session):
         from controllers.menus import MenusController
 
-        choice = EventView.display_events(events, user)
         try:
+            choice = EventView.display_events(events, user)
             if user.role.code == "man":
                 if choice == "1":
-                    cls.filter_events(user, choice, session)
+                    cls.filter_events(user, session)
                 elif choice == "2":
                     cls.edit_event(user, events, session)
             elif user.role.code == "sup":
                 if choice == "1":
-                    cls.filter_events(user, choice, session)
+                    cls.filter_events(user, session)
                 elif choice == "2":
                     cls.edit_event(user, events, session)
             if choice == "menu":
@@ -92,16 +109,17 @@ class EventController:
                 )
                 MenusController.back_to_main_menu(user, session, callback)
         except Exception as e:
-            session.rollback()
-            MainView.display_message("c là ya un pb gro")
-            cls.events_permissions(user, events, session)
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Permission error : {e}")
+            callback = partial(cls.events_permissions, user, events, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
     def edit_event(cls, user, events, session):
         from controllers.menus import MenusController
 
-        event_id = EventView.get_event_id()
         try:
+            event_id = EventView.get_event_id()
             event_to_edit = session.query(Event).get(event_id)
             if event_to_edit:
                 choice = EventView.edit_event_view(user)
@@ -186,51 +204,48 @@ class EventController:
                 cls.edit_event(user, events, session)
         except Exception as e:
             session.rollback()
-            MainView.display_message("Please enter a valid ID.")
-            cls.edit_event(user, events, session)
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"error editing event : {e}")
+            callback = partial(cls.edit_event, user, events, session)
+            MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
-    def filter_events(cls, user, choice, session):
+    def filter_events(cls, user, session):
         from controllers.menus import MenusController
-        if user.role.code == "man":
-            events = (
-                session.query(Event)
-                .filter(Event.support == None)
-                .options(
-                    joinedload(Event.support),
-                    joinedload(Event.contract),
+
+        try:
+            if user.role.code == "man":
+                events = (
+                    session.query(Event)
+                    .filter(Event.support == None)
+                    .options(
+                        joinedload(Event.support),
+                        joinedload(Event.contract),
+                    )
+                    .all()
                 )
-                .all()
-            )
-            if events:
-                cls.events_permissions(user, events, session)
-            else:
-                MainView.display_message("No event found")
-                MenusController.main_menu(user, session)
-        elif user.role.code == "sup":
-            events = (
-                session.query(Event)
-                .filter(Event.support_contact == user.id)
-                .options(
-                    joinedload(Event.support),
-                    joinedload(Event.contract),
-                ).all()
-            )
-            if events:
-                cls.events_permissions(user, events, session)
-            else:
-                MainView.display_message("No event found")
-                MenusController.main_menu(user, session)
-
-
-"""
-Manager:
-Filtrer laffichage des événements, par exemple : afficher tous les
-événements qui nont pas de « support » associé.
-● Modifier des événements (pour associer un collaborateur support à
-lévénement).
-Support:
-● Filtrer laffichage des événements, par exemple : afficher
-uniquement les événements qui leur sont attribués.
-● Mettre à jour les événements dont ils sont responsables
-"""
+                if events:
+                    cls.events_permissions(user, events, session)
+                else:
+                    MainView.display_message("No event found")
+                    MenusController.main_menu(user, session)
+            elif user.role.code == "sup":
+                events = (
+                    session.query(Event)
+                    .filter(Event.support_contact == user.id)
+                    .options(
+                        joinedload(Event.support),
+                        joinedload(Event.contract),
+                    )
+                    .all()
+                )
+                if events:
+                    cls.events_permissions(user, events, session)
+                else:
+                    MainView.display_message("No event found")
+                    MenusController.main_menu(user, session)
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error filtering events : {e}")
+            callback = partial(cls.filter_events, user, events, session)
+            MenusController.back_to_main_menu(user, session, callback)

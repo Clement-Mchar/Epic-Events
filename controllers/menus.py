@@ -3,14 +3,15 @@ from controllers.client_controller import ClientController
 from controllers.contract_controller import ContractController
 from controllers.event_controller import EventController
 from controllers.user_controller import UserController
+import sentry_sdk
 
 
 class MenusController:
 
     @classmethod
     def main_menu(cls, user, session):
-        choice = MainView.main_menu_view(user)
         try:
+            choice = MainView.main_menu_view(user)
             if choice == 1:
                 ClientController.get_clients(user, session)
             elif choice == 2:
@@ -33,16 +34,13 @@ class MenusController:
                     ClientController.create_client(user, session)
                 elif choice == 5:
                     EventController.create_event(user, session)
-                else:
-                    session.rollback()
-                    MainView.display_message("Pick a valid option.")
-                    cls.main_menu(user, session)
             else:
-                session.rollback()
                 MainView.display_message("Pick a valid option.")
                 cls.main_menu(user, session)
         except Exception as e:
-            print(f"Error during main menu: {e}")
+            sentry_sdk.capture_exception(e)
+            MainView.display_message(f"Error during main menu: {e}")
+            cls.main_menu(user, session)
 
     @classmethod
     def back_to_main_menu(cls, user, session, callback):
