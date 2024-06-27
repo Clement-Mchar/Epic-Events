@@ -15,7 +15,7 @@ class ContractController:
         try:
             # Handle user's choice to either create a contract or return to main menu
             if choice == "menu":
-                callback = partial(cls.create_contract, user, clients, session)
+                callback = partial(cls.create_contract, user, clients, choice, session)
                 MenusController.back_to_main_menu(user, session, callback)
             else:
                 # Retrieve client based on user's choice and create a new contract
@@ -34,14 +34,13 @@ class ContractController:
                     )
                 else:
                     MainView.display_message("Pick a valid option")
-                    cls.create_contract(user, clients, session)
 
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
             MainView.display_message(f"Error creating contract: {e}")
             # Retry contract creation upon encountering an exception
-            callback = partial(cls.create_contract, user, session)
+            callback = partial(cls.create_contract, user, clients, choice, session)
             MenusController.back_to_main_menu(user, session, callback)
 
     @classmethod
@@ -116,7 +115,6 @@ class ContractController:
             # Handle different edit scenarios based on user's choices
             if contract_to_edit:
                 choice = ContractView.edit_contract_view(
-                    user, contract_to_edit
                 )
 
                 if choice == "1":

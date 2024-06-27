@@ -96,7 +96,6 @@ class ClientController:
                 )
                 MenusController.back_to_main_menu(user, session, callback)
             else:
-                MainView.display_message("Pick a valid option.")
                 cls.clients_permissions(user, clients, session)
 
         except Exception as e:
