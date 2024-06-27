@@ -26,8 +26,9 @@ psql -U postgres
 
 Ensuite, exécutez les commandes SQL suivantes pour créer la base de données et l'utilisateur :
 
-CREATE DATABASE epic_events;
+
 CREATE USER app_user WITH PASSWORD 'your_password';
+CREATE DATABASE epic_events OWNER app_user;
 GRANT ALL PRIVILEGES ON DATABASE epic_events TO app_user;
 
 ### 3. Créer un environnement virtuel
