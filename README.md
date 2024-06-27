@@ -14,6 +14,7 @@ Epic Events est une application de gestion d'événements.
 ### 1. Cloner le répertoire
 
 git clone https://github.com/votre-utilisateur/epic-events.git
+
 cd epic-events
 
 ### 2. Configurer la base de données PostgreSQL
@@ -28,7 +29,9 @@ Ensuite, exécutez les commandes SQL suivantes pour créer la base de données e
 
 
 CREATE USER app_user WITH PASSWORD 'your_password';
+
 CREATE DATABASE epic_events OWNER app_user;
+
 GRANT ALL PRIVILEGES ON DATABASE epic_events TO app_user;
 
 ### 3. Créer un environnement virtuel
