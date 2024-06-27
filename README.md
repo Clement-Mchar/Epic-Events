@@ -13,8 +13,9 @@ Epic Events est une application de gestion d'événements.
 
 ### 1. Cloner le répertoire
 
-git clone https://github.com/votre-utilisateur/epic-events.git
-cd epic-events
+Dans le terminal de commandes, entrez `git clone https://github.com/Clement-Mchar/Epic-Events`
+
+Entrez `cd epic-events`
 
 ### 2. Configurer la base de données PostgreSQL
 
@@ -22,55 +23,61 @@ Créez une base de données nommée `epic_events` et un utilisateur `app_user` q
 
 Connectez-vous à PostgreSQL en utilisant psql :
 
-psql -U postgres
+Entrez `psql -U postgres`
 
 Ensuite, exécutez les commandes SQL suivantes pour créer la base de données et l'utilisateur :
 
 
-CREATE USER app_user WITH PASSWORD 'your_password';
-CREATE DATABASE epic_events OWNER app_user;
-GRANT ALL PRIVILEGES ON DATABASE epic_events TO app_user;
+`CREATE USER app_user WITH PASSWORD 'your_password';`
+
+`CREATE DATABASE epic_events OWNER app_user;`
+
+`GRANT ALL PRIVILEGES ON DATABASE epic_events TO app_user;`
 
 ### 3. Créer un environnement virtuel
 
-python -m venv env
+Entrez `python -m venv env`
 
-Activez-le en écrivant 'env\scripts\activate' dans le terminal.
+Activez-le en entrant `env\scripts\activate` dans le terminal.
 
 ### 4. Installer les dépendances
 
-pip install -r requirements.txt
+Entrez `pip install -r requirements.txt`
 
 ### 5. Configurer les variables d'environnement
 
 Créez un fichier `.env` à la racine du projet et ajoutez-y la ligne suivante avec les informations de connexion à votre base de données :
 
-DATABASE_URL=postgresql://app_user:your_password@localhost:5432/epic_events
+`DATABASE_URL=postgresql://app_user:your_password@localhost:5432/epic_events`
 
 ### 6. Ajouter la journalisation de Sentry
 
-Créez un compte ou connectez-vous sur sentry.io, puis créez un projet et ajoutez l'adresse du kit sentry aux variables d'environnement sous le nom "DSN"
+Créez un compte ou connectez-vous sur sentry.io, puis créez un projet et ajoutez l'adresse du projet aux variables d'environnements :
+
+`DSN=https://id.ingest.de.sentry.io/project`
 
 ### 7. Lancer les migrations de la base de données
 
-alembic upgrade head
+Entrez `alembic upgrade head`
 
-alembic revision --autogenerate -m "Initial migration"  
+Créez le dossier versions à l'intérieur du dossier migrations en entrant `mkdir -p migrations/versions`
+
+Entrez `alembic revision --autogenerate -m "Initial migration"`
 
 Importez sqlalchemy_utils dans le fichier de migration et supprimez la longueur du mot de passe
 
 ### 8. Créer les rôles
 
-python create_roles.py
+Entrez `python create_roles.py`
 
 ### 9. Créer un utilisateur (manager)
 
-python create_user.py
+Entrez `python create_user.py`
 
 Entrez le mot de passe de l'utilisateur
 
 ### 10. Connexion à l'application
 
-python main.py
+Entrez `python main.py`
 
 Entrez l'email et le mot de passe de l'utilisateur désiré
