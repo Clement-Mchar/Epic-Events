@@ -4,11 +4,11 @@ from rich.table import Table
 
 console = Console()
 
-
 class EventView:
 
     @classmethod
     def display_events(cls, events, user):
+        # Create a table with headers
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white", justify="right")
         table.add_column("Contract ID", style="white")
@@ -20,6 +20,7 @@ class EventView:
         table.add_column("Attendees", style="white")
         table.add_column("Notes", style="white")
 
+        # Add event data to the table
         for event in events:
             client_infos = (
                 f"Name: {event.contract.client.full_name}, "
@@ -40,10 +41,11 @@ class EventView:
             )
         console.print(table)
 
-        if user.role.code == "man":
+        # Display different options based on user role
+        if (user.role.code == "man"):
             console.print("1. Display all events without support contact")
             console.print("2. Edit an event")
-        elif user.role.code == "sup":
+        elif (user.role.code == "sup"):
             console.print("1. Display events that you are working on")
             console.print("2. Edit an event")
         console.print('Enter "menu" to return to the main menu')
@@ -53,15 +55,15 @@ class EventView:
 
     @classmethod
     def create_event(cls):
+        # Prompt the user to enter event details
         event_name = Prompt.ask("Enter event name")
-        event_start = Prompt.ask(
-            "Enter event start time (YYYY-MM-DD HH:MM:SS)"
-        )
+        event_start = Prompt.ask("Enter event start time (YYYY-MM-DD HH:MM:SS)")
         event_end = Prompt.ask("Enter event end time (YYYY-MM-DD HH:MM:SS)")
         location = Prompt.ask("Enter event location")
         attendees = Prompt.ask("Enter number of attendees")
         notes = Prompt.ask("Enter additional notes (optional)", default="")
 
+        # Store event information
         event_infos = [
             event_name,
             event_start,
@@ -75,19 +77,20 @@ class EventView:
 
     @classmethod
     def event_contract_id(cls):
-        choice = Prompt.ask(
-            "Enter the ID of the contract you want to create an event for"
-        )
+        # Prompt user to enter contract ID
+        choice = Prompt.ask("Enter the ID of the contract you want to create an event for")
         return choice
 
     @classmethod
     def get_event_id(cls):
+        # Prompt user to enter event ID
         choice = int(Prompt.ask("Enter the ID of the event you want to edit"))
         return choice
 
     @classmethod
     def edit_event_view(cls, user):
         console.print("What do you want to edit ?")
+        # Display different options based on user role
         if user.role.code == "man":
             console.print("Manager Options :")
             console.print("1. Assign a support contact to an event")
@@ -107,6 +110,7 @@ class EventView:
 
     @classmethod
     def edit_event_support(cls, users):
+        # Create a table to display user options for support contact
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white")
         table.add_column("Full name", style="white")
@@ -122,8 +126,7 @@ class EventView:
             )
         console.print(table)
         console.print(
-            "1. Enter the ID of the collaborator you want to assign to the"
-            " event"
+            "1. Enter the ID of the collaborator you want to assign to the event"
         )
         console.print('\nEnter "menu" to return to the main menu')
         choice = Prompt.ask("\nSelect an option")
@@ -136,16 +139,12 @@ class EventView:
 
     @classmethod
     def edit_event_start(cls):
-        new_event_start = Prompt.ask(
-            "Enter event start time (YYYY-MM-DD HH:MM:SS)"
-        )
+        new_event_start = Prompt.ask("Enter event start time (YYYY-MM-DD HH:MM:SS)")
         return new_event_start
 
     @classmethod
     def edit_event_end(cls):
-        new_event_end = Prompt.ask(
-            "Enter event end time (YYYY-MM-DD HH:MM:SS)"
-        )
+        new_event_end = Prompt.ask("Enter event end time (YYYY-MM-DD HH:MM:SS)")
         return new_event_end
 
     @classmethod
@@ -165,6 +164,7 @@ class EventView:
 
     @classmethod
     def edit_event_contract(cls, contracts):
+        # Create a table to display contract options for event
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white")
         table.add_column("Client name", style="white")
@@ -195,8 +195,6 @@ class EventView:
                 status,
             )
         console.print(table)
-        new_event_contract = Prompt.ask(
-            "Enter the ID of the contract you want to assign to the event"
-        )
+        new_event_contract = Prompt.ask("Enter the ID of the contract you want to assign to the event")
 
         return new_event_contract

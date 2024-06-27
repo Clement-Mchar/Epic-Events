@@ -4,11 +4,11 @@ from rich.table import Table
 
 console = Console()
 
-
 class ContractView:
 
     @classmethod
     def display_user_contracts(cls, contracts):
+        # Create a table to display contract information
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white")
         table.add_column("Client name", style="white")
@@ -19,6 +19,7 @@ class ContractView:
         table.add_column("Creation date", style="white")
         table.add_column("Status", style="white")
 
+        # Add contract data to the table
         for contract in contracts:
             client_infos = (
                 f"Phone: {contract.client.telephone}, "
@@ -42,6 +43,7 @@ class ContractView:
 
     @classmethod
     def edit_contract_view(cls):
+        # Display options for editing a contract
         console.print("What do you want to modify ?")
         console.print("1. Total amount")
         console.print("2. Amount due")
@@ -53,26 +55,31 @@ class ContractView:
 
     @classmethod
     def edit_contract_total_amount(cls):
+        # Prompt for new total amount
         new_total_amount = Prompt.ask("New total amount")
         return new_total_amount
 
     @classmethod
     def edit_contract_amount_due(cls):
+        # Prompt for new amount due
         new_amount_due = Prompt.ask("New amount due")
         return new_amount_due
 
     @classmethod
     def edit_contract_status(cls):
+        # Prompt for new contract status
         new_status = Prompt.ask("Contract signed (yes/no)")
         return new_status
 
     @classmethod
     def enter_contract_id(cls):
+        # Prompt user to enter contract ID
         choice = Prompt.ask("Enter the ID of the contract you want to edit")
         return choice
 
     @classmethod
     def display_contracts(cls, contracts, user):
+        # Create a table to display contract information
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white")
         table.add_column("Client name", style="white")
@@ -83,6 +90,7 @@ class ContractView:
         table.add_column("Creation date", style="white")
         table.add_column("Status", style="white")
 
+        # Add contract data to the table
         for contract in contracts:
             client_infos = (
                 f"Phone: {contract.client.telephone}, "
@@ -104,6 +112,7 @@ class ContractView:
             )
         console.print(table)
 
+        # Display different options based on user role
         if user.role.code == "man":
             console.print("1. Edit a contract infos")
         if user.role.code == "com":
@@ -118,5 +127,6 @@ class ContractView:
 
     @classmethod
     def create_contract_view(cls):
-        total_amount = Prompt.ask("Prix du contrat")
+        # Prompt user to enter contract total amount
+        total_amount = Prompt.ask("Contract price")
         return total_amount

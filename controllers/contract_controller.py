@@ -13,10 +13,12 @@ class ContractController:
         from controllers.menus import MenusController
 
         try:
+            # Handle user's choice to either create a contract or return to main menu
             if choice == "menu":
                 callback = partial(cls.create_contract, user, clients, session)
                 MenusController.back_to_main_menu(user, session, callback)
             else:
+                # Retrieve client based on user's choice and create a new contract
                 client = session.query(Client).get(choice)
                 if client:
                     total_amount = ContractView.create_contract_view()
@@ -33,10 +35,12 @@ class ContractController:
                 else:
                     MainView.display_message("Pick a valid option")
                     cls.create_contract(user, clients, session)
+
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
             MainView.display_message(f"Error creating contract: {e}")
+            # Retry contract creation upon encountering an exception
             callback = partial(cls.create_contract, user, session)
             MenusController.back_to_main_menu(user, session, callback)
 
@@ -45,13 +49,16 @@ class ContractController:
         from controllers.menus import MenusController
 
         try:
+            # Retrieve all contracts with eager loading of client data
             contracts = (
                 session.query(Contract)
                 .options(joinedload(Contract.client))
                 .all()
             )
 
+            # Delegate permissions handling based on retrieved contracts
             cls.contracts_permissions(user, contracts, session)
+
         except Exception as e:
             sentry_sdk.capture_exception(e)
             MainView.display_message(f"Error getting contracts: {e}")
@@ -64,10 +71,13 @@ class ContractController:
         from controllers.event_controller import EventController
 
         try:
+            # Display contracts based on user's role and handle corresponding actions
             choice = ContractView.display_contracts(contracts, user)
+
             if user.role.code == "man":
                 if choice == "1":
                     cls.edit_contract(user, contracts, session)
+
             elif user.role.code == "com":
                 if choice == "1":
                     cls.edit_contract(user, contracts, session)
@@ -75,12 +85,15 @@ class ContractController:
                     cls.filter_contracts(user, contracts, choice, session)
                 elif choice == "5":
                     EventController.create_event(user, session)
+
+            # Return to main menu upon user's request
             if choice == "menu":
                 callback = partial(cls.edit_contract, user, contracts, session)
                 MenusController.back_to_main_menu(user, session, callback)
             else:
                 MainView.display_message("Pick a valid option.")
                 cls.edit_contract(user, contracts, session)
+
         except Exception as e:
             sentry_sdk.capture_exception(e)
             MainView.display_message(
@@ -96,13 +109,18 @@ class ContractController:
         from controllers.menus import MenusController
 
         try:
+            # Prompt user for contract ID and retrieve corresponding contract
             contract_id = ContractView.enter_contract_id()
             contract_to_edit = session.query(Contract).get(contract_id)
+
+            # Handle different edit scenarios based on user's choices
             if contract_to_edit:
                 choice = ContractView.edit_contract_view(
                     user, contract_to_edit
                 )
+
                 if choice == "1":
+                    # Update total and left amounts of the contract
                     new_total_amount = (
                         ContractView.edit_contract_total_amount()
                     )
@@ -111,35 +129,48 @@ class ContractController:
                     session.commit()
                     MainView.display_message("Updated successfully.")
                     MenusController.main_menu(user, session)
+
                 elif choice == "2":
+                    # Update left amount of the contract
                     new_amount_due = ContractView.edit_contract_amount_due()
                     contract_to_edit.left_amount = new_amount_due
                     session.commit()
                     MainView.display_message("Updated successfully.")
                     MenusController.main_menu(user, session)
+
                 elif choice == "3":
+                    # Update status of the contract (True/False)
                     new_status = ContractView.edit_contract_status()
                     if new_status == "yes":
                         contract_to_edit.status = True
                         session.commit()
                         MainView.display_message("Updated successfully.")
                         MenusController.main_menu(user, session)
-                    if new_status == "no":
+                    elif new_status == "no":
                         contract_to_edit.status = False
                         session.commit()
                         cls.get_contracts(user, session)
+
                 elif choice == "menu":
+                    # Return to main menu upon user's request
                     callback = partial(
                         cls.edit_contract, user, contracts, session
                     )
                     MenusController.back_to_main_menu(user, session, callback)
+
                 else:
                     session.rollback()
                     MainView.display_message("Pick a valid option.")
-                    cls.edit_contract(user, contracts, session)
+                    cls.edit_contract(
+                        user, contracts, session
+                    )  # Retry editing on invalid option
+
             else:
-                MainView.display_message("No client found.")
-                cls.edit_contract(user, contracts, session)
+                MainView.display_message("No contract found.")
+                cls.edit_contract(
+                    user, contracts, session
+                )  # Retry editing if no contract found
+
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
@@ -152,6 +183,7 @@ class ContractController:
         from controllers.menus import MenusController
 
         try:
+            # Filter contracts based on user's choice (commercial contact, due amount, status)
             if choice == "2":
                 contracts = (
                     session.query(Contract)
@@ -169,6 +201,7 @@ class ContractController:
                 else:
                     MainView.display_message("No contract found")
                     MenusController.main_menu(user, session)
+
             if choice == "3":
                 contracts = (
                     session.query(Contract)
@@ -180,6 +213,7 @@ class ContractController:
                 else:
                     MainView.display_message("No contract found")
                     MenusController.main_menu(user, session)
+
             if choice == "4":
                 contracts = (
                     session.query(Contract)
@@ -195,6 +229,7 @@ class ContractController:
                 else:
                     MainView.display_message("No contract found")
                     MenusController.main_menu(user, session)
+
         except Exception as e:
             sentry_sdk.capture_exception(e)
             MainView.display_message(f"Error filtering contracts : {e}")

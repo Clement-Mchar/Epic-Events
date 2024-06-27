@@ -4,3 +4,4 @@ __pycache__
 create_roles.py
 create_user.py
 setup_sentry.py
+migrations

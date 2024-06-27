@@ -4,11 +4,11 @@ from rich.table import Table
 
 console = Console()
 
-
 class ClientView:
 
     @classmethod
     def create_client(cls):
+        # Prompt user for client information
         full_name = Prompt.ask("Enter client name")
         email = Prompt.ask("Enter client email")
         telephone = Prompt.ask("Enter client number")
@@ -20,6 +20,7 @@ class ClientView:
 
     @classmethod
     def edit_client_view(cls):
+        # Display options for editing client information
         console.print("What do you want to modify ?")
         console.print("1. Name")
         console.print("2. Email")
@@ -32,26 +33,31 @@ class ClientView:
 
     @classmethod
     def edit_client_name(cls):
+        # Prompt for new client name
         new_name = Prompt.ask("New client name")
         return new_name
 
     @classmethod
     def edit_client_email(cls):
+        # Prompt for new client email
         new_email = str(Prompt.ask("New client email"))
         return new_email
 
     @classmethod
     def edit_client_number(cls):
+        # Prompt for new client number
         new_number = Prompt.ask("New client number")
         return new_number
 
     @classmethod
     def edit_client_business_name(cls):
+        # Prompt for new client business name
         new_business_name = Prompt.ask("New client business name")
         return new_business_name
 
     @classmethod
     def display_clients(cls, clients, user):
+        # Create a table to display client information
         table = Table(show_header=True, header_style="cyan")
         table.add_column("ID", style="white", justify="right")
         table.add_column("Name", style="white")
@@ -62,6 +68,7 @@ class ClientView:
         table.add_column("Last update")
         table.add_column("Commercial contact")
 
+        # Add client data to the table
         for client in clients:
             table.add_row(
                 str(client.id),
@@ -75,6 +82,7 @@ class ClientView:
             )
 
         console.print(table)
+        # Display options based on user role
         if user.role.code == "com":
             console.print("1. Enter the ID of a client to edit its infos")
         elif user.role.code == "man":

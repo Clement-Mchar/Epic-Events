@@ -2,6 +2,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.theme import Theme
 
+# Define a custom theme for the console
 custom_theme = Theme(
     {
         "error": "bold red",
@@ -11,17 +12,19 @@ custom_theme = Theme(
     }
 )
 
+# Initialize the console with the custom theme
 console = Console(theme=custom_theme)
-
 
 class MainView:
 
     @classmethod
     def display_message(cls, message):
+        # Display a message in bold green
         console.print(message, style="bold green")
 
     @classmethod
     def main_menu_view(cls, user):
+        # Display the main menu options based on user role
         console.print("Main Menu", style="title")
         console.print("1. Display clients list")
         console.print("2. Display contracts list")
@@ -33,10 +36,12 @@ class MainView:
         if user.role.code == "com":
             console.print("4. Create a new client")
 
+        # Prompt user to select an option
         choice = int(Prompt.ask("\nSelect an option"))
         return choice
 
     @classmethod
     def return_to_main_menu(cls, message):
+        # Confirm returning to the main menu
         confirmation = Prompt.ask(message + " (yes/no)")
         return confirmation.lower() in ["yes", "y"]

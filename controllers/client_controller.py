@@ -13,10 +13,12 @@ class ClientController:
         from controllers.menus import MenusController
 
         try:
+            # Prompt user for client information
             client_infos = ClientView.create_client()
             full_name, email, telephone, business_name = client_infos
-            if user.role.code == "com":
 
+            # Check user's role and create client if allowed
+            if user.role.code == "com":
                 new_client = Client(
                     full_name=full_name,
                     email=email,
@@ -29,11 +31,12 @@ class ClientController:
                 MainView.display_message(
                     f"Client created with id: {new_client.id}"
                 )
+                MenusController.main_menu(user, session)
             else:
                 MainView.display_message(
                     "You don't have the permission to create a client."
                 )
-                return MenusController.main_menu(user, session)
+                MenusController.main_menu(user, session)
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
@@ -46,13 +49,15 @@ class ClientController:
         from controllers.menus import MenusController
 
         try:
-            if user:
-                clients = (
-                    session.query(Client)
-                    .options(joinedload(Client.commercial))
-                    .all()
-                )
-                cls.clients_permissions(user, clients, session)
+            # Retrieve all clients from the database
+            clients = (
+                session.query(Client)
+                .options(joinedload(Client.commercial))
+                .all()
+            )
+
+            # Process client permissions based on user's role
+            cls.clients_permissions(user, clients, session)
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
@@ -66,19 +71,25 @@ class ClientController:
         from controllers.contract_controller import ContractController
 
         try:
+            # Display clients and handle user's choice
             choice = ClientView.display_clients(clients, user)
+
             if user.role.code == "com":
+                # Edit client if choice is a valid client ID
                 client_to_edit = session.query(Client).get(choice)
                 if client_to_edit:
                     cls.edit_client(user, client_to_edit, session)
                 else:
                     MainView.display_message("No client found.")
                     cls.clients_permissions(user, clients, session)
+
             elif user.role.code == "man":
+                # Create contract for selected client
                 ContractController.create_contract(
                     user, clients, choice, session
                 )
 
+            # Handle menu option or invalid choice
             if choice == "menu":
                 callback = partial(
                     cls.clients_permissions, user, clients, session
@@ -87,6 +98,7 @@ class ClientController:
             else:
                 MainView.display_message("Pick a valid option.")
                 cls.clients_permissions(user, clients, session)
+
         except Exception as e:
             sentry_sdk.capture_exception(e)
             MainView.display_message(
@@ -100,7 +112,10 @@ class ClientController:
         from controllers.menus import MenusController
 
         try:
+            # Display options for editing client information
             choice = ClientView.edit_client_view()
+
+            # Update client information based on user's choice
             if choice == "1":
                 new_name = ClientView.edit_client_name()
                 client_to_edit.full_name = new_name
@@ -110,17 +125,23 @@ class ClientController:
             elif choice == "2":
                 new_email = ClientView.edit_client_email()
                 client_to_edit.email = new_email
+                session.commit()
+                MainView.display_message("Updated successfully.")
+                MenusController.main_menu(user, session)
             elif choice == "3":
                 new_number = ClientView.edit_client_number()
                 client_to_edit.telephone = new_number
+                session.commit()
+                MainView.display_message("Updated successfully.")
+                MenusController.main_menu(user, session)
             elif choice == "4":
                 new_business_name = ClientView.edit_client_business_name()
                 client_to_edit.business_name = new_business_name
+                session.commit()
+                MainView.display_message("Updated successfully.")
+                MenusController.main_menu(user, session)
 
-            session.commit()
-            MainView.display_message("Updated successfully.")
-            MenusController.main_menu(user, session)
-
+            # Handle menu option or invalid choice
             if choice == "menu":
                 callback = partial(
                     cls.edit_client, user, client_to_edit, session
@@ -130,6 +151,7 @@ class ClientController:
                 session.rollback()
                 MainView.display_message("Pick a valid option.")
                 cls.edit_client(user, client_to_edit, session)
+
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)

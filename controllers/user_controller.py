@@ -13,10 +13,16 @@ class UserController:
         from controllers.menus import MenusController
 
         try:
+            # Prompt for user creation information
             user_infos = UserView.create_user_view()
             full_name, email, password, role_name = user_infos
+
+            # Fetch role based on provided role name
             role = session.query(Role).filter(Role.code == role_name).one()
+
+            # Check if user has manager permission
             if user.role.code == "man":
+                # Create new User object and add to session
                 new_user = User(
                     full_name=full_name,
                     email=email,
@@ -29,12 +35,15 @@ class UserController:
                     f"User created with id: {new_user.id}"
                 )
             else:
+                # Display permission error message and handle callback
                 MainView.display_message(
-                    "You don't have the permission to create an user."
+                    "You don't have permission to create a user."
                 )
                 callback = partial(cls.create_user, user, session)
                 MenusController.back_to_main_menu(user, session, callback)
+
         except Exception as e:
+            # Rollback on exception, log with Sentry, and handle callback
             session.rollback()
             sentry_sdk.capture_exception(e)
             MainView.display_message(f"Error creating user : {e}")
@@ -44,10 +53,16 @@ class UserController:
     @classmethod
     def get_users(cls, user, session):
         from controllers.menus import MenusController
+
         try:
+            # Fetch all users with their associated roles
             if user:
-                users = session.query(User).options(joinedload(User.role)).all()
+                users = (
+                    session.query(User).options(joinedload(User.role)).all()
+                )
+            # Handle user permissions
             cls.users_permissions(user, users, session)
+
         except Exception as e:
             sentry_sdk.capture_exception(e)
             MainView.display_message(f"Error getting users : {e}")
@@ -59,9 +74,13 @@ class UserController:
         from controllers.menus import MenusController
 
         try:
+            # Display users and prompt for action
             choice = UserView.display_users(users)
+
+            # Check permissions based on user role
             if user.role.code == "man":
                 if choice == "1" or choice == "2":
+                    # Handle user editing or deletion based on choice
                     if choice == "1":
                         user_id = UserView.enter_user_id()
                         user_to_manage = session.query(User).get(user_id)
@@ -69,9 +88,7 @@ class UserController:
                             cls.edit_user(user, user_to_manage, session)
                         else:
                             session.rollback()
-                            MainView.display_message(
-                                "Pick a valid collaborator id."
-                            )
+                            MainView.display_message("Pick a valid user id.")
                     elif choice == "2":
                         user_id = UserView.delete_user_id()
                         user_to_manage = session.query(User).get(user_id)
@@ -80,9 +97,10 @@ class UserController:
                         else:
                             session.rollback()
                             MainView.display_message(
-                                "Collaborator not found. Pick a valid user id."
+                                "User not found. Pick a valid user id."
                             )
                 elif choice == "menu":
+                    # Handle menu option with callback
                     callback = partial(
                         cls.users_permissions, user, users, session
                     )
@@ -99,6 +117,7 @@ class UserController:
                 else:
                     MainView.display_message("Pick a valid option.")
                     cls.users_permissions(user, users, session)
+
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
@@ -111,7 +130,10 @@ class UserController:
         from controllers.menus import MenusController
 
         try:
+            # Prompt for edit choice (name, email, role)
             choice = UserView.edit_user_view()
+
+            # Perform action based on user choice
             if choice == "1":
                 new_name = UserView.edit_user_name()
                 user_to_manage.full_name = new_name
@@ -136,6 +158,7 @@ class UserController:
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
             elif choice == "menu":
+                # Handle menu option with callback
                 callback = partial(
                     cls.edit_user, user, user_to_manage, session
                 )
@@ -144,6 +167,7 @@ class UserController:
                 session.rollback()
                 MainView.display_message("Pick a valid option.")
                 cls.edit_user(user, user_to_manage, session)
+
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
@@ -154,11 +178,14 @@ class UserController:
     @classmethod
     def delete_user(cls, user, user_to_manage, session):
         from controllers.menus import MenusController
+
         try:
+            # Prompt for deletion confirmation
             confirmation = UserView.delete_user_view(
                 "Are you sure you want to delete user with id"
                 f" {user_to_manage.id}?"
             )
+            # Proceed with deletion if confirmed
             if confirmation:
                 session.delete(user_to_manage)
                 session.commit()
@@ -169,6 +196,7 @@ class UserController:
             else:
                 MainView.display_message("User deletion canceled.")
                 MenusController.main_menu(user, session)
+
         except Exception as e:
             session.rollback()
             sentry_sdk.capture_exception(e)
