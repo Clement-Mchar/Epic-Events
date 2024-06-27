@@ -33,6 +33,7 @@ GRANT ALL PRIVILEGES ON DATABASE epic_events TO app_user;
 ### 3. Créer un environnement virtuel
 
 python -m venv env
+
 Activez-le en écrivant 'env\scripts\activate' dans le terminal.
 
 ### 4. Installer les dépendances
