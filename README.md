@@ -13,9 +13,9 @@ Epic Events est une application de gestion d'événements.
 
 ### 1. Cloner le répertoire
 
-Dans le terminal de commandes git clone https://github.com/Clement-Mchar/Epic-Events
+Dans le terminal de commandes, entrez git clone https://github.com/Clement-Mchar/Epic-Events
 
-Tapez cd epic-events
+Entrez cd epic-events
 
 ### 2. Configurer la base de données PostgreSQL
 
@@ -23,7 +23,7 @@ Créez une base de données nommée `epic_events` et un utilisateur `app_user` q
 
 Connectez-vous à PostgreSQL en utilisant psql :
 
-psql -U postgres
+Entrez psql -U postgres
 
 Ensuite, exécutez les commandes SQL suivantes pour créer la base de données et l'utilisateur :
 
@@ -36,13 +36,13 @@ GRANT ALL PRIVILEGES ON DATABASE epic_events TO app_user;
 
 ### 3. Créer un environnement virtuel
 
-python -m venv env
+Entrez python -m venv env
 
-Activez-le en écrivant 'env\scripts\activate' dans le terminal.
+Activez-le en entrant 'env\scripts\activate' dans le terminal.
 
 ### 4. Installer les dépendances
 
-pip install -r requirements.txt
+Entrez pip install -r requirements.txt
 
 ### 5. Configurer les variables d'environnement
 
@@ -56,26 +56,26 @@ Créez un compte ou connectez-vous sur sentry.io, puis créez un projet et ajout
 
 ### 7. Lancer les migrations de la base de données
 
-alembic upgrade head
+Entrez alembic upgrade head
 
-Créez le dossier versions à l'intérieur du dossier migrations : mkdir -p migrations/versions
+Créez le dossier versions à l'intérieur du dossier migrations en entrant mkdir -p migrations/versions
 
-alembic revision --autogenerate -m "Initial migration"  
+Entrez alembic revision --autogenerate -m "Initial migration"  
 
 Importez sqlalchemy_utils dans le fichier de migration et supprimez la longueur du mot de passe
 
 ### 8. Créer les rôles
 
-python create_roles.py
+Entrez python create_roles.py
 
 ### 9. Créer un utilisateur (manager)
 
-python create_user.py
+Entrez python create_user.py
 
 Entrez le mot de passe de l'utilisateur
 
 ### 10. Connexion à l'application
 
-python main.py
+Entrez python main.py
 
 Entrez l'email et le mot de passe de l'utilisateur désiré
