@@ -45,7 +45,7 @@ pip install -r requirements.txt
 
 Créez un fichier `.env` à la racine du projet et ajoutez-y la ligne suivante avec les informations de connexion à votre base de données :
 
-DATABASE_URL=postgresql://app_user:your_password@localhost/epic_events
+DATABASE_URL=postgresql://app_user:your_password@localhost:5432/epic_events
 
 ### 6. Ajouter la journalisation de Sentry
 
