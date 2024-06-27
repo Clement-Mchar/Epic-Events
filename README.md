@@ -13,9 +13,9 @@ Epic Events est une application de gestion d'événements.
 
 ### 1. Cloner le répertoire
 
-git clone https://github.com/votre-utilisateur/epic-events.git
+Dans le terminal de commandes git clone https://github.com/Clement-Mchar/Epic-Events
 
-cd epic-events
+Tapez cd epic-events
 
 ### 2. Configurer la base de données PostgreSQL
 
