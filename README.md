@@ -55,6 +55,8 @@ Créez un compte ou connectez-vous sur sentry.io, puis créez un projet et ajout
 
 alembic upgrade head
 
+Créez le dossier versions à l'intérieur du dossier migrations : mkdir -p migrations/versions
+
 alembic revision --autogenerate -m "Initial migration"  
 
 Importez sqlalchemy_utils dans le fichier de migration et supprimez la longueur du mot de passe
