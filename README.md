@@ -55,6 +55,10 @@ Créez un compte ou connectez-vous sur sentry.io, puis créez un projet et ajout
 
 alembic upgrade head
 
+alembic revision --autogenerate -m "Initial migration"  
+
+Importez sqlalchemy_utils dans le fichier de migration et supprimez la longueur du mot de passe
+
 ### 8. Créer les rôles
 
 python create_roles.py
