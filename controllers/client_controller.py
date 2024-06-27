@@ -1,6 +1,7 @@
 from views.client_view import ClientView
 from views.menu_view import MainView
-from models.models import Client
+from views.user_view import UserView
+from models.models import Client, User, Role
 from functools import partial
 from sqlalchemy.orm import joinedload
 import sentry_sdk
@@ -139,6 +140,28 @@ class ClientController:
                 session.commit()
                 MainView.display_message("Updated successfully.")
                 MenusController.main_menu(user, session)
+            elif choice == "5":
+                users = (
+                    session.query(User)
+                    .join(Role)
+                    .filter(Role.code == "com")
+                    .options(joinedload(User.role)
+                ).all())
+                UserView.display_users(users)
+                new_commercial_contact_id = (
+                    ClientView.edit_client_commercial_contact()
+                )
+                new_commercial_contact = (
+                    session.query(User)
+                    .filter(User.id == new_commercial_contact_id)
+                )
+                if new_commercial_contact:
+                    client_to_edit.commercial_contact = new_commercial_contact
+                    session.commit()
+                    MainView.display_message("Updated successfully.")
+                    MenusController.main_menu(user, session)
+                else:
+                    MainView.display_message("No commercial found.")
 
             # Handle menu option or invalid choice
             if choice == "menu":

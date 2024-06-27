@@ -118,7 +118,7 @@ class Client(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
-    commercial_contact: Mapped[int] = mapped_column(ForeignKey("user.id"), nullable=True)
+    commercial_contact: Mapped[int] = mapped_column(ForeignKey("user.id"))
 
     commercial: Mapped["User"] = relationship(back_populates="clients")
     contracts: Mapped[List["Contract"]] = relationship(back_populates="client")

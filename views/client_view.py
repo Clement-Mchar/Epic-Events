@@ -26,6 +26,7 @@ class ClientView:
         console.print("2. Email")
         console.print("3. Telephone")
         console.print("4. Business name")
+        console.print("5. Commercial Contact")
         console.print('\nEnter "menu" to return to the main menu')
         choice = Prompt.ask("\nSelect an option")
 
@@ -53,6 +54,12 @@ class ClientView:
     def edit_client_business_name(cls):
         # Prompt for new client business name
         new_business_name = Prompt.ask("New client business name")
+        return new_business_name
+
+    @classmethod
+    def edit_client_commercial_contact(cls):
+        # Prompt for new client commercial contact
+        new_business_name = Prompt.ask("Enter the id of the commercial you want to associate with this client")
         return new_business_name
 
     @classmethod
